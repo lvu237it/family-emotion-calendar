@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 240 10% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 210 90% 60%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom scroll styles */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+/* Animation classes */
+@layer components {
+  .animate-in {
+    animation-duration: 300ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+  }
+
+  .animate-out {
+    animation-duration: 200ms;
+    animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+    will-change: transform, opacity;
+  }
+}
+
+/* Calendar styles */
+.calendar-container {
+  @apply rounded-2xl shadow-lg bg-white overflow-hidden relative transition-all duration-300;
+}
+
+.calendar-header {
+  @apply p-4 flex justify-between items-center bg-primary/5 border-b border-primary/10;
+}
+
+.calendar-day {
+  @apply relative flex items-center justify-center rounded-full transition-all duration-300 ease-in-out;
+  aspect-ratio: 1/1;
+}
+
+.calendar-day-active {
+  @apply cursor-pointer hover:bg-primary/10;
+}
+
+.calendar-day-selected {
+  @apply bg-primary text-white font-medium;
+}
+
+.calendar-day-has-emotion {
+  @apply after:absolute after:bottom-1 after:w-1.5 after:h-1.5 after:rounded-full after:bg-primary/80;
+}
+
+/* Emotion modal */
+.emotion-selector {
+  @apply grid grid-cols-5 gap-3 p-6;
+}
+
+.emotion-item {
+  @apply flex flex-col items-center justify-center p-3 rounded-xl transition-all cursor-pointer;
+}
+
+.emotion-item:hover {
+  @apply bg-secondary;
+}
+
+.emotion-item-selected {
+  @apply bg-primary/10 ring-2 ring-primary;
+}
+
+.modal-overlay {
+  @apply fixed inset-0 bg-foreground/30 backdrop-blur-sm z-50;
+}
+
+.modal-content {
+  @apply fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background rounded-2xl shadow-xl overflow-hidden max-h-[85vh] w-[90vw] max-w-md z-50 animate-in;
+}
