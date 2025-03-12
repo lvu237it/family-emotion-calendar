@@ -56,14 +56,14 @@ const FamilyDiscussion = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <Feather name='message-circle' size={18} color='black' />
-        <Text style={styles.headerTitle}>Family Discussion</Text>
+        <Text style={styles.headerTitle}>Thảo luận cùng gia đình</Text>
       </View>
 
       <ScrollView style={styles.commentsContainer}>
         {discussion.comments.length === 0 ? (
           <View style={styles.noComments}>
             <Text style={styles.noCommentsText}>
-              No comments yet. Be the first to start the discussion!
+              Chưa có bình luận nào. Bạn hãy bắt đầu cuộc thảo luận này nhé!
             </Text>
           </View>
         ) : (

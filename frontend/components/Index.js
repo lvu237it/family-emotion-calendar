@@ -81,14 +81,14 @@ const Index = () => {
                         {userEmotion.emoji}
                       </Text>
                       <Text style={styles.moodButtonText}>
-                        Update Your Mood
+                        Cập nhật trạng thái
                       </Text>
                     </>
                   ) : (
                     <>
                       <Entypo name='plus' size={18} color='black' />
                       <Text style={styles.moodButtonText}>
-                        Record Your Mood
+                        Ghi lại cảm xúc của bạn
                       </Text>
                     </>
                   )}
@@ -201,6 +201,7 @@ const styles = StyleSheet.create({
   dateTitle: {
     fontSize: 18,
     fontWeight: '500',
-    marginBottom: 16,
+    marginTop: 10,
+    textAlign: 'center',
   },
 });

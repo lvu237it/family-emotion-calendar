@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 16,
     overflow: 'hidden',
-    margin: 16,
+    // margin: 16,
   },
   header: {
     flexDirection: 'row',
@@ -157,8 +157,8 @@ const styles = StyleSheet.create({
   weekDays: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingHorizontal: 10,
+    // paddingBottom: 8,
   },
   weekDay: {
     fontSize: 12,
@@ -168,9 +168,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   daysGrid: {
+    marginTop: 10,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 16,
+    // padding: 2,
   },
   day: {
     width: 32,
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 16,
-    margin: 4,
+    margin: 8.5,
   },
   dayText: {
     fontSize: 14,

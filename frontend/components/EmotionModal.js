@@ -33,7 +33,7 @@ const EmotionModal = ({ isOpen, onClose, currentEmotion, onSave }) => {
     <View style={styles.overlay}>
       <View style={styles.modalContent}>
         <View style={styles.modalHeader}>
-          <Text style={styles.modalTitle}>How are you feeling today?</Text>
+          <Text style={styles.modalTitle}>Hôm nay bạn thấy thế nào?</Text>
           <Pressable onPress={onClose} style={styles.closeButton}>
             <MaterialCommunityIcons
               name='window-close'
@@ -60,10 +60,10 @@ const EmotionModal = ({ isOpen, onClose, currentEmotion, onSave }) => {
         </ScrollView>
 
         <View style={styles.noteContainer}>
-          <Text style={styles.noteLabel}>Add a note (optional)</Text>
+          <Text style={styles.noteLabel}>Thêm ghi chú (không bắt buộc)</Text>
           <TextInput
             style={styles.noteInput}
-            placeholder="What's on your mind today?"
+            placeholder='Bạn nghĩ ngày hôm nay của mình ra sao?'
             multiline
             numberOfLines={3}
             value={note}
@@ -73,7 +73,7 @@ const EmotionModal = ({ isOpen, onClose, currentEmotion, onSave }) => {
 
         <View style={styles.modalFooter}>
           <Pressable style={styles.cancelButton} onPress={onClose}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+            <Text style={styles.cancelButtonText}>Huỷ</Text>
           </Pressable>
           <Pressable
             style={[
@@ -83,7 +83,7 @@ const EmotionModal = ({ isOpen, onClose, currentEmotion, onSave }) => {
             onPress={handleSave}
             disabled={!selectedEmotion}
           >
-            <Text style={styles.saveButtonText}>Save</Text>
+            <Text style={styles.saveButtonText}>Lưu</Text>
           </Pressable>
         </View>
       </View>

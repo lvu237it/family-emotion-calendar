@@ -41,22 +41,22 @@ const EmotionSummary = ({ dayData, familyMembers }) => {
   const overallMood = getOverallMood();
 
   const getMoodInfo = () => {
-    if (!overallMood) return { message: 'No data yet', color: '#666' };
+    if (!overallMood) return { message: 'Không có số liệu', color: '#666' };
 
     switch (overallMood) {
       case 'positive':
         return {
-          message: 'The family is having a good day!',
+          message: 'Mọi người cảm thấy hôm nay là một ngày rất vui!',
           color: '#22c55e',
         };
       case 'negative':
         return {
-          message: 'The family is having a challenging day',
+          message: 'Các thành viên trong gia đình đang cảm thấy không vui',
           color: '#ef4444',
         };
       default:
         return {
-          message: 'The family mood is balanced today',
+          message: 'Tâm trạng chung của gia đình bạn hôm nay ở mức cân bằng',
           color: '#3b82f6',
         };
     }
@@ -68,15 +68,15 @@ const EmotionSummary = ({ dayData, familyMembers }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <FontAwesome name='heart-o' size={18} color='black' />
-        <Text style={styles.headerTitle}>Family Mood Summary</Text>
+        <Text style={styles.headerTitle}>Thống kê tâm trạng hôm nay</Text>
       </View>
 
       <View style={styles.content}>
         <View style={styles.moodMessage}>
           <Text style={[styles.moodText, { color }]}>{message}</Text>
           <Text style={styles.moodSubtext}>
-            {recordedCount} of {memberCount} family members have shared their
-            feelings
+            {recordedCount} / {memberCount} thành viên trong gia đình đã chia sẻ
+            cảm xúc của họ
           </Text>
         </View>
 
@@ -85,21 +85,21 @@ const EmotionSummary = ({ dayData, familyMembers }) => {
             <Text style={[styles.statValue, { color: '#22c55e' }]}>
               {getPercentage(emotionCounts.positive)}%
             </Text>
-            <Text style={styles.statLabel}>Positive</Text>
+            <Text style={styles.statLabel}>Tích cực</Text>
           </View>
 
           <View style={[styles.statItem, { backgroundColor: '#dbeafe' }]}>
             <Text style={[styles.statValue, { color: '#3b82f6' }]}>
               {getPercentage(emotionCounts.neutral)}%
             </Text>
-            <Text style={styles.statLabel}>Neutral</Text>
+            <Text style={styles.statLabel}>Bình thường</Text>
           </View>
 
           <View style={[styles.statItem, { backgroundColor: '#fee2e2' }]}>
             <Text style={[styles.statValue, { color: '#ef4444' }]}>
               {getPercentage(emotionCounts.negative)}%
             </Text>
-            <Text style={styles.statLabel}>Negative</Text>
+            <Text style={styles.statLabel}>Tiêu cực</Text>
           </View>
         </View>
 
@@ -138,7 +138,8 @@ const EmotionSummary = ({ dayData, familyMembers }) => {
         {recordedCount === 0 && (
           <View style={styles.noData}>
             <Text style={styles.noDataText}>
-              No emotions recorded yet for this day
+              Chưa có thành viên nào cập nhật trạng thái của họ trong ngày hôm
+              nay
             </Text>
           </View>
         )}
@@ -156,7 +157,8 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    // alignItems: 'center',
+    justifyContent: 'center',
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
@@ -174,8 +176,10 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   moodText: {
+    textAlign: 'center',
     fontSize: 18,
     fontWeight: '500',
+    marginBottom: 10,
   },
   moodSubtext: {
     fontSize: 14,
@@ -190,13 +194,15 @@ const styles = StyleSheet.create({
   statItem: {
     flex: 1,
     alignItems: 'center',
-    padding: 16,
+    paddingVertical: 20,
+    // paddingHorizontal: 10s,
     borderRadius: 12,
-    marginHorizontal: 4,
+    marginHorizontal: 5,
   },
   statValue: {
     fontSize: 20,
     fontWeight: '500',
+    // paddingHorizontal: 10,
   },
   statLabel: {
     fontSize: 12,
@@ -216,6 +222,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   noDataText: {
+    textAlign: 'center',
     color: '#666',
   },
 });
