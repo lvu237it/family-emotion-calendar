@@ -1,63 +1,37 @@
-const mongoose = require("mongoose");
-const crypto = require('crypto')
-//Tạo model cho user dựa trên các phương thức có sẵn của mongoose
+const mongoose = require('mongoose');
+
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
   },
-  password: {
+  avatar: {
     type: String,
-    required: true,
+    default: '/placeholder.svg',
   },
   email: {
     type: String,
     required: true,
     unique: true,
   },
-  description: {
+  password: {
     type: String,
-  },
-  avatar: String,
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user',
+    required: true,
   },
   createdAt: {
     type: Date,
     default: Date.now(),
   },
-  updatedAt: Date,
-  isDeleted: {
-    type: Boolean,
-    default: false,
+  updatedAt: {
+    type: Date,
   },
-  deletedAt: Date,
-  refreshToken: {
-    type: String,
-},
-passwordChangedAt: {
-    type: String
-},
-passwordResetToken: {
-    type: String
-},
-passwordResetExpires: {
-    type: String
-}
-}, {
-  timestamps: true
+  familyId: {
+    type: mongoose.SchemaTypes.ObjectId,
+    ref: 'Family',
+    required: true,
+  },
 });
 
-userSchema.methods = {
-  createPasswordChangedToken: function () {
-      const resetToken = crypto.randomBytes(32).toString('hex')
-      this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex')
-      this.passwordResetExpires = Date.now() + 15 * 60 * 1000
-      return resetToken
-  }
-}
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;

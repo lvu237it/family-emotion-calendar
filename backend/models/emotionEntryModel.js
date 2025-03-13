@@ -1,11 +1,10 @@
 const mongoose = require('mongoose');
 
-const commentSchema = new mongoose.Schema({
-  content: {
-    type: String,
-    required: true,
+const emotionEntrySchema = new mongoose.Schema({
+  emoji: {
+    type: String, //Happy: 😊 , Sad: 😢 , Angry: 😡, Tired: 😴, Joyful: 😂, Surprised: 😮, Anxious: 😰, Loved: ❤️, Peaceful: 😌, Thoughtful: 🤔
   },
-  photo: {
+  notes: {
     type: String,
   },
   dateString: {
@@ -25,15 +24,8 @@ const commentSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
   },
-  isDeleted: {
-    type: Boolean,
-    default: false,
-  },
-  deletedAt: {
-    type: Date,
-  },
 });
 
-const Comment = mongoose.model('Comment', commentSchema);
+const EmotionEntry = mongoose.model('EmotionEntry', emotionEntrySchema);
 
-module.exports = Comment;
+module.exports = EmotionEntry;
