@@ -100,11 +100,7 @@ exports.getFamilyEmojisInDay = async (req, res, next) => {
       dateString, // Kiểm tra nếu dateString trong EmotionEntry có khớp
     }).populate('userId', 'username avatar email');
 
-    return res.status(200).json({
-      message: 'Danh sách emoji của các thành viên trong gia đình',
-      status: 200,
-      data: emojis,
-    });
+    return res.status(200).json(emojis);
   } catch (err) {
     res.status(500).json({
       message: 'Lỗi khi lấy danh sách emoji của gia đình',

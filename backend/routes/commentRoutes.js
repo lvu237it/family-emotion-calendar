@@ -9,4 +9,6 @@ router.get(
   commentController.getAllCommentsOfFamilyInDay
 ); //ok
 
+router.post('/add-comment/:userId', commentController.addComment); //ok
+
 module.exports = router;

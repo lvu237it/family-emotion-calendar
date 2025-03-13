@@ -39,3 +39,34 @@ exports.getAllCommentsOfFamilyInDay = async (req, res, next) => {
     });
   }
 };
+
+//Thêm bình luận vào trong đoạn hội thoại của gia đình vào ngày này
+exports.addComment = async (req, res, next) => {
+  try {
+    const { content, photo, dateString } = req.body;
+    const { userId } = req.params;
+
+    if (!content || !dateString || !userId) {
+      return res.status(400).json({ message: 'Thiếu thông tin cần thiết!' });
+    }
+
+    const newComment = new Comment({
+      content,
+      photo,
+      dateString,
+      userId,
+    });
+
+    await newComment.save();
+
+    res.status(201).json({
+      message: 'Thêm bình luận thành công!',
+      data: newComment,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Lỗi khi thêm bình luận!',
+      error: error.message,
+    });
+  }
+};

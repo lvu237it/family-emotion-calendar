@@ -76,11 +76,7 @@ exports.getFamilyMembers = async (req, res, next) => {
       });
     }
 
-    return res.status(200).json({
-      message: 'Danh sách thành viên gia đình',
-      status: 200,
-      data: members,
-    });
+    return res.status(200).json(members);
   } catch (err) {
     res.status(500).json({
       message: 'Lỗi khi lấy danh sách thành viên gia đình',

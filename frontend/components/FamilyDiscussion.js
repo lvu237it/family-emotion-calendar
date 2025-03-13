@@ -20,12 +20,12 @@ const FamilyDiscussion = ({
   const [comment, setComment] = useState('');
   const commentsEndRef = useRef(null);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [discussion]);
+  // useEffect(() => {
+  //   scrollToBottom();
+  // }, [discussion]);
 
   const scrollToBottom = () => {
-    commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    commentsEndRef?.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleSubmit = () => {

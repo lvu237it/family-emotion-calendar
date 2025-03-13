@@ -11,6 +11,7 @@ const commentModel = require('./models/commentModel');
 const emotionEntryModel = require('./models/emotionEntryModel');
 const familyModel = require('./models/familyModel');
 const specialDayModel = require('./models/specialDayModel');
+const calendarModel = require('./models/calendarModel');
 
 //import routers
 const userRouter = require('./routes/userRoutes');
@@ -19,6 +20,7 @@ const emotionEntryRoutes = require('./routes/emotionEntryRoutes');
 const commentRouter = require('./routes/commentRoutes');
 const specialDayRoutes = require('./routes/specialDayRoutes');
 const familyRoutes = require('./routes/familyRoutes');
+const calendarRoutes = require('./routes/calendarRoutes');
 
 // const frontendURL = process.env.FRONTEND_URL;
 
@@ -42,6 +44,7 @@ app.use('/comments', commentRouter);
 app.use('/authentication', authenticationRouter);
 app.use('/emotions', emotionEntryRoutes);
 app.use('/special-days', specialDayRoutes);
+app.use('/calendars', calendarRoutes);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
