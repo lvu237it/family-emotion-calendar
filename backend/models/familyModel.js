@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const familySchema = new mongoose.Schema({
   familyName: {
     type: String,
+    unique: true,
     required: true,
   },
   createdAt: {

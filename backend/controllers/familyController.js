@@ -1,445 +1,138 @@
 const AppError = require('../utils/appError');
+const Family = require('../models/familyModel');
+const { v4: uuidv4 } = require('uuid');
+const User = require('../models/userModel'); // Import User model
 
-// // Get all recipes
-// exports.getAllRecipes = async (req, res) => {
-//   try {
-//     const { limit = 10, cursor = 0, category, sortOrder } = req.query;
-//     const query = { isDeleted: false };
+exports.registerFamily = async (req, res, next) => {
+  try {
+    const { familyName } = req.body;
 
-//     // Add category filter if specified
-//     if (category) {
-//       query.foodCategories = category;
-//     }
+    // Tạo familyName với định dạng familyName + "-" + uuid
+    const formattedFamilyName = `${familyName}-${uuidv4()}`;
 
-//     // Get total count before pagination
-//     const totalRecipes = await Recipe.countDocuments(query);
-//     const totalPages = Math.ceil(totalRecipes / limit);
+    const resultCreated = await Family.create({
+      familyName: formattedFamilyName,
+    });
 
-//     // Create sort object
-//     let sortObj = {};
-//     if (sortOrder === 'latest') {
-//       sortObj = { createdAt: -1 };
-//     } else if (sortOrder === 'oldest') {
-//       sortObj = { createdAt: 1 };
-//     }
+    // Trả về kết quả hiển thị dưới dạng json
+    return res.status(200).json({
+      message: 'success',
+      status: 200,
+      data: resultCreated,
+    });
+  } catch (error) {
+    console.log('Lỗi khi tạo family', error);
+    return res.status(500).json({
+      message: 'error',
+      status: 500,
+      error,
+    });
+  }
+};
 
-//     // Get paginated results
-//     const results = await Recipe.find(query)
-//       .sort(sortObj)
-//       .skip(parseInt(cursor))
-//       .limit(parseInt(limit))
-//       .exec();
+// Lấy danh sách tất cả các gia đình
+exports.getAllFamilies = async (req, res, next) => {
+  try {
+    const families = await Family.find();
+    res.status(200).json(families);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-//     // Format description
-//     const updatedResults = results.map((recipe) => ({
-//       ...recipe._doc,
-//       description: recipe.description
-//         .replace(/'/g, '"')
-//         .split('\n')
-//         .map((line) => `<div>${line}</div>`)
-//         .join(''),
-//     }));
+exports.getYourFamilyByFamilyId = async (req, res, next) => {
+  try {
+    const { familyId } = req.params;
 
-//     return res.json({
-//       message: 'success',
-//       status: 200,
-//       totalRecipes,
-//       totalPages,
-//       data: updatedResults,
-//     });
-//   } catch (error) {
-//     console.log('error while getting recipes', error);
-//     return res.status(500).json({
-//       message: 'error',
-//       status: 500,
-//       error: error.message,
-//     });
-//   }
-// };
+    const family = await Family.findById(familyId);
 
-// // Get recipe by recipe id
-// exports.getRecipeById = async (req, res) => {
-//   try {
-//     const { recipeId } = req.params;
-//     const results = await Recipe.find({ _id: recipeId, isDeleted: false });
+    if (!family)
+      return res.status(404).json({ message: 'Không tìm thấy family' });
+    res.status(200).json(family);
+  } catch (error) {
+    console.log('Lỗi khi lấy thông tin family', error);
+    return res.status(500).json({
+      message: 'Lỗi khi lấy thông tin family',
+      status: 500,
+      error: error.message,
+    });
+  }
+};
 
-//     return res.json({
-//       message: 'success',
-//       status: 200,
-//       data: results,
-//     });
-//   } catch (error) {
-//     console.log('error while getting recipes by id', error);
-//     return res.json({
-//       message: 'error',
-//       status: 404,
-//       error,
-//     });
-//   }
-// };
+//Lấy danh sách các thành viên trong 1 gia đình
+exports.getFamilyMembers = async (req, res, next) => {
+  try {
+    const { familyId } = req.params;
 
-// // Get populated recipe by recipe id
-// exports.getPopulateRecipeById = async (req, res) => {
-//   try {
-//     const { recipeId } = req.params;
-//     const results = await Recipe.find({
-//       _id: recipeId,
-//       isDeleted: false,
-//     }).populate('owner', 'username avatar');
+    // Lấy danh sách thành viên của gia đình theo familyId
+    const members = await User.find({ familyId }).select(
+      'username avatar email createdAt updatedAt'
+    );
 
-//     return res.json({
-//       message: 'success',
-//       status: 200,
-//       data: results,
-//     });
-//   } catch (error) {
-//     console.log('error while getting populated recipes by id', error);
-//     return res.json({
-//       message: 'error',
-//       status: 404,
-//       error,
-//     });
-//   }
-// };
+    if (members.length === 0) {
+      return res.status(404).json({
+        message: 'Không có thành viên nào trong gia đình',
+        status: 404,
+      });
+    }
 
-// //Check if recipe is exist or not
-// exports.checkIfRecipeIsExist = async (req, res, next) => {
-//   const { recipeId } = req.params;
-//   const { recipe_id } = req.body;
+    return res.status(200).json({
+      message: 'Danh sách thành viên gia đình',
+      status: 200,
+      data: members,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: 'Lỗi khi lấy danh sách thành viên gia đình',
+      status: 500,
+      error: err.message,
+    });
+  }
+};
 
-//   // Kiểm tra xem recipeId hoặc recipe_id có tồn tại không
-//   if (recipeId) {
-//     const result = await Recipe.findById(recipeId);
+//Cập nhật family name
+exports.updateFamily = async (req, res, next) => {
+  try {
+    const { familyId } = req.params;
+    const { familyName } = req.body;
 
-//     if (!result) {
-//       return next(new AppError('No recipe found', 404));
-//     }
+    // Tìm family bằng familyId
+    const family = await Family.findById(familyId);
 
-//     req.recipe = recipeId;
-//     next();
-//   } else if (recipe_id) {
-//     const result = await Recipe.findById(recipe_id);
+    if (!family) {
+      return res.status(404).json({
+        message: 'Không tìm thấy gia đình',
+        status: 404,
+      });
+    }
 
-//     // Kiểm tra xem result có tồn tại không
-//     if (!result) {
-//       return next(new AppError('No recipe found', 404));
-//     }
+    // Tách familyName cũ thành 6 phần
+    const currentFamilyName = family.familyName;
+    const familyNameParts = currentFamilyName.split('-');
 
-//     req.recipe = recipe_id;
-//     next();
-//   } else {
-//     return next(new AppError('No recipe found', 404));
-//   }
-// };
+    // Thay phần tử đầu tiên của mảng với familyName mới
+    familyNameParts[0] = familyName;
 
-// /*
-// --------------------Xử lý tìm kiếm dữ liệu nhập vào là kiểu mảng-------------------------
-// Tìm món ăn có chứa ít nhất một loại trong danh sách (OR logic) → Dùng $in.
-// Tìm món ăn chứa tất cả các loại bạn truyền vào (AND logic) → Dùng $all.
-// Tìm món ăn có chính xác các loại bạn truyền vào, không hơn không kém → Dùng $size kết hợp với $all.
-// */
-// //Get recipes by categories
-// exports.findAllRecipesByCategories = async (req, res) => {
-//   try {
-//     const { foodCategories } = req.body;
-//     if (!foodCategories || !Array.isArray(foodCategories)) {
-//       return res
-//         .status(400)
-//         .json({ message: 'foodCategories must be an array.' });
-//     }
+    // Ghép lại thành familyName mới
+    const updatedFamilyName = familyNameParts.join('-');
 
-//     const results = await Recipe.find({
-//       foodCategories: { $all: foodCategories },
-//       isDeleted: false,
-//     });
+    // Cập nhật lại familyName với tên mới
+    family.familyName = updatedFamilyName;
 
-//     if (results.length > 0) {
-//       return res.status(200).json({
-//         message: 'success',
-//         status: 200,
-//         data: results,
-//       });
-//     }
-//     res.status(404).json({
-//       message: 'recipes not found',
-//       status: 404,
-//     });
-//   } catch (error) {
-//     console.log('error while getting recipes by categories', error);
-//     return res.json({
-//       message: 'error',
-//       status: 404,
-//       error,
-//     });
-//   }
-// };
+    // Lưu lại đối tượng gia đình với familyName mới
+    await family.save();
 
-// // Get all recipes by title
-// exports.findAllRecipesByTitle = async (req, res) => {
-//   try {
-//     const { title } = req.body;
-
-//     if (!title || typeof title !== 'string') {
-//       return res.status(400).json({
-//         message: 'Title must be a non-empty string.',
-//       });
-//     }
-
-//     const results = await Recipe.find({
-//       title: { $regex: title, $options: 'i' }, // "i" để không phân biệt hoa/thường
-//       isDeleted: false,
-//     });
-
-//     if (results.length > 0) {
-//       return res.status(200).json({
-//         message: 'success',
-//         data: results,
-//       });
-//     }
-//     return res.status(404).json({
-//       message: 'recipes not found',
-//       status: 404,
-//     });
-//   } catch (error) {
-//     console.log('error while getting recipes by title', error);
-//     return res.status(404).json({
-//       message: 'error',
-//       status: 404,
-//       error,
-//     });
-//   }
-// };
-
-// // Create new recipe
-// exports.createNewRecipe = async (req, res) => {
-//   try {
-//     const {
-//       imageUrl,
-//       foodCategories,
-//       title,
-//       description,
-//       ingredients,
-//       steps,
-//       owner,
-//       sources,
-//     } = req.body;
-
-//     // Kiểm tra và parse nếu là chuỗi JSON
-//     const parseIfString = (value) => {
-//       try {
-//         return typeof value === 'string' ? JSON.parse(value) : value;
-//       } catch (error) {
-//         return value; // Nếu không phải chuỗi JSON, trả về giá trị nguyên vẹn
-//       }
-//     };
-
-//     // Lưu recipe vào cơ sở dữ liệu
-//     const recentRecipeCreated = await Recipe.create({
-//       imageUrl, // Đã có URL ảnh từ frontend
-//       foodCategories: parseIfString(foodCategories),
-//       title,
-//       description,
-//       ingredients: parseIfString(ingredients),
-//       steps: parseIfString(steps),
-//       owner,
-//       sources: parseIfString(sources),
-//     });
-
-//     // Trả về kết quả hiển thị dưới dạng json
-//     return res.status(200).json({
-//       message: 'success',
-//       status: 200,
-//       data: recentRecipeCreated,
-//     });
-//   } catch (error) {
-//     console.log('error while creating recipe', error);
-//     return res.status(404).json({
-//       message: 'error',
-//       status: 404,
-//       error,
-//     });
-//   }
-// };
-
-// // Update recipe
-// exports.updateRecipe = async (req, res) => {
-//   try {
-//     // Lấy tham số từ body của request từ client và đem xử lý tại server
-//     const {
-//       imageUrl,
-//       foodCategories,
-//       title,
-//       description,
-//       ingredients,
-//       steps,
-//       sources,
-//       status,
-//     } = req.body;
-//     const { recipeId } = req.params;
-
-//     // Kiểm tra sự tồn tại của recipeId trong cơ sở dữ liệu
-//     const existingRecipe = await Recipe.find({
-//       _id: recipeId,
-//       isDeleted: false,
-//     });
-
-//     if (!existingRecipe) {
-//       return res.status(404).json({
-//         message: 'Recipe not found',
-//         status: 404,
-//       });
-//     }
-
-//     // Nếu tồn tại, tiếp tục cập nhật
-//     const updateData = {
-//       imageUrl,
-//       foodCategories,
-//       title,
-//       description,
-//       ingredients,
-//       steps,
-//       status,
-//       sources,
-//       updatedAt: Date.now(),
-//     };
-
-//     // Cập nhật món ăn với các trường có dữ liệu
-//     const recentUpdated = await Recipe.findByIdAndUpdate(recipeId, updateData, {
-//       new: true,
-//     });
-
-//     // Trả về kết quả hiển thị dưới dạng json
-//     return res.status(200).json({
-//       message: 'Update successful',
-//       status: 200,
-//       data: recentUpdated,
-//     });
-//   } catch (error) {
-//     console.log('Error while updating recipe:', error);
-//     return res.status(404).json({
-//       message: 'error',
-//       status: 404,
-//       error,
-//     });
-//   }
-// };
-
-// // Delete a recipe
-// exports.deleteRecipe = async (req, res) => {
-//   try {
-//     const recipeId = req.recipe;
-
-//     // Kiểm tra sự tồn tại của recipeId trong cơ sở dữ liệu
-//     const existingRecipe = await Recipe.find({
-//       _id: recipeId,
-//       isDeleted: false,
-//     });
-
-//     if (!existingRecipe) {
-//       return res.status(404).json({
-//         message: 'Recipe not found',
-//         status: 404,
-//       });
-//     }
-
-//     // Tiến hành đánh dấu món ăn là đã xóa
-//     const recentDeleted = await Recipe.findByIdAndUpdate(
-//       recipeId,
-//       { isDeleted: true, deletedAt: Date.now(), updatedAt: Date.now() },
-//       { new: true }
-//     );
-
-//     // Trả về kết quả hiển thị dưới dạng json
-//     return res.status(200).json({
-//       message: 'Delete successful',
-//       status: 200,
-//       data: recentDeleted,
-//     });
-//   } catch (error) {
-//     console.log('Error while deleting recipe:', error);
-//     return res.status(500).json({
-//       message: 'Server error',
-//       status: 500,
-//     });
-//   }
-// };
-
-// // Search recipes by title or ingredients
-// exports.searchRecipesByQuery = async (req, res) => {
-//   try {
-//     const {
-//       query = '',
-//       limit = 10,
-//       cursor = 0,
-//       category,
-//       sortOrder,
-//     } = req.query;
-
-//     if (!query.trim()) {
-//       return res.json({
-//         message: 'success',
-//         status: 200,
-//         data: [],
-//         totalPages: 0,
-//       });
-//     }
-
-//     // Create search query
-//     const searchQuery = {
-//       isDeleted: false,
-//       $or: [
-//         { title: { $regex: query, $options: 'i' } },
-//         { ingredients: { $elemMatch: { $regex: query, $options: 'i' } } },
-//       ],
-//     };
-
-//     // Add category filter if specified
-//     if (category) {
-//       searchQuery.foodCategories = category;
-//     }
-
-//     // Create sort object
-//     let sortObj = {};
-//     if (sortOrder === 'latest') {
-//       sortObj = { createdAt: -1 };
-//     } else if (sortOrder === 'oldest') {
-//       sortObj = { createdAt: 1 };
-//     }
-
-//     // Get total count for pagination
-//     const totalRecipes = await Recipe.countDocuments(searchQuery);
-//     const totalPages = Math.ceil(totalRecipes / limit);
-
-//     // Get paginated results
-//     const results = await Recipe.find(searchQuery)
-//       .sort(sortObj)
-//       .skip(parseInt(cursor))
-//       .limit(parseInt(limit))
-//       .exec();
-
-//     // Format description
-//     const updatedResults = results.map((recipe) => ({
-//       ...recipe._doc,
-//       description: recipe.description
-//         .replace(/'/g, '"')
-//         .split('\n')
-//         .map((line) => `<div>${line}</div>`)
-//         .join(''),
-//     }));
-
-//     return res.json({
-//       message: 'success',
-//       status: 200,
-//       totalRecipes,
-//       totalPages,
-//       data: updatedResults,
-//     });
-//   } catch (error) {
-//     console.log('error while searching recipes', error);
-//     return res.status(500).json({
-//       message: 'error',
-//       status: 500,
-//       error: error.message,
-//     });
-//   }
-// };
+    // Trả về kết quả cập nhật thành công
+    return res.status(200).json({
+      message: 'Cập nhật gia đình thành công',
+      status: 200,
+      data: family,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: 'Lỗi khi cập nhật gia đình',
+      status: 500,
+      error: err.message,
+    });
+  }
+};

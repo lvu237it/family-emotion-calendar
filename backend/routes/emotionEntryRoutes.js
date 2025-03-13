@@ -1,17 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const emotionEntryController = require('../controllers/emotionEntryController');
-// const { protect } = require('../utils/auth');
 
-//Router for business logic here
-//default: /admin
+// Lấy danh sách các emoji (emotion entries) của các thành viên trong gia đình trong một ngày
+router.get(
+  '/emojis-of-family/:familyId/:dateString',
+  emotionEntryController.getFamilyEmojisInDay
+); //ok
 
-// router.get('/recipes', protect, adminController.getAllRecipe);
-// router.get('/recipes/:recipeId', protect, adminController.getRecipeDetails);
-// router.patch(
-//   '/recipes/:recipeId/status',
-//   protect,
-//   adminController.updateRecipeStatus
-// );
+//Ghi lại emotion của bạn trong ngày
+router.post(
+  '/record-your-emoji-in-day/:userId',
+  emotionEntryController.addYourEmotionInDay
+); //ok
+
+// Cập nhật lại cảm xúc của bạn trong ngày
+router.patch(
+  '/update-your-emoji-in-day/:userId',
+  emotionEntryController.updateYourEmotionInDay
+); //ok
 
 module.exports = router;

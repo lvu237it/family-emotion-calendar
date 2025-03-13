@@ -3,6 +3,18 @@ const mongoose = require('mongoose');
 const emotionEntrySchema = new mongoose.Schema({
   emoji: {
     type: String, //Happy: 😊 , Sad: 😢 , Angry: 😡, Tired: 😴, Joyful: 😂, Surprised: 😮, Anxious: 😰, Loved: ❤️, Peaceful: 😌, Thoughtful: 🤔
+    enum: [
+      'Happy',
+      'Sad',
+      'Angry',
+      'Tired',
+      'Joyful',
+      'Surprised',
+      'Anxious',
+      'Loved',
+      'Peaceful',
+      'Thoughtful',
+    ],
   },
   notes: {
     type: String,

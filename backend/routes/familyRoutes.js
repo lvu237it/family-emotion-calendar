@@ -2,28 +2,10 @@ const express = require('express');
 const router = express.Router();
 const familyController = require('../controllers/familyController');
 
-// router.get('/', savedRecipeController.getAllSavedRecipes);
-// router.get(
-//   '/get-all-infor-of-saved-recipe/:savedRecipeId',
-//   savedRecipeController.checkIfSavedRecipeIsExist,
-//   savedRecipeController.getInformationOfSavedRecipe
-// );
-// router.get(
-//   '/all-saved-recipes-by-user-id/:saverId',
-//   // savedRecipeController.checkSaverIsExist,
-//   savedRecipeController.getSavedRecipesBySaverId
-// );
-
-// router.post(
-//   '/save-to-my-favorite-recipes/:recipeId',
-//   recipeController.checkIfRecipeIsExist,
-//   savedRecipeController.saveRecipeToFavoriteList
-// );
-// router.delete(
-//   '/unsave-from-favorite-list/:recipeId',
-//   recipeController.checkIfRecipeIsExist,
-//   savedRecipeController.unsaveRecipeFromFavoriteList
-// );
-// router.post('/check-is-saved', savedRecipeController.checkARecipeIsSaved);
+router.get('/', familyController.getAllFamilies); //ok
+router.get('/:familyId', familyController.getYourFamilyByFamilyId); //ok
+router.get('/:familyId/members', familyController.getFamilyMembers); //ok
+router.post('/register-family', familyController.registerFamily); //ok
+router.patch('/:familyId/edit-information', familyController.updateFamily); //ok
 
 module.exports = router;

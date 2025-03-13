@@ -36,7 +36,7 @@ app.use(cors());
 
 //routing handlers
 // --Định tuyến sẵn cho các request từ client với các domain như /recipes, /users
-app.use('/family', familyRoutes);
+app.use('/families', familyRoutes);
 app.use('/users', userRouter);
 app.use('/comments', commentRouter);
 app.use('/authentication', authenticationRouter);

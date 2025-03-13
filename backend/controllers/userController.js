@@ -1,184 +1,163 @@
-// const User = require('../models/userModel');
-// const mongoose = require('mongoose');
-// const Recipe = require('../models/recipeModel');
+const User = require('../models/userModel');
 
-// //Get User in4 by userID
-// exports.getUserById = async (req, res) => {
-//   try {
-//     const { userId } = req.params;
-//     const loggedInUserId = req.user._id; // ID từ token
+exports.getUserInformation = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
 
-//     console.log('🔹 userId from params:', userId);
-//     console.log('🔹 loggedInUserId from token:', loggedInUserId);
+    const existingUser = await User.findById(userId);
 
-//     // Kiểm tra định dạng ObjectId
-//     if (!mongoose.Types.ObjectId.isValid(userId)) {
-//       return res.status(400).json({ message: 'Invalid User ID format.' });
-//     }
+    if (!existingUser) {
+      return res.status(404).json({
+        message: 'Người dùng không tồn tại',
+        status: 404,
+      });
+    }
 
-//     // Kiểm tra quyền truy cập
-//     if (!loggedInUserId.equals(userId)) {
-//       return res
-//         .status(403)
-//         .json({ message: 'Forbidden - You can only view your own profile.' });
-//     }
+    return res.status(200).json({
+      message: 'Lấy thông tin người dùng thành công',
+      status: 200,
+      data: existingUser,
+    });
+  } catch (error) {
+    console.error('Lỗi khi kiểm tra tài khoản người dùng', error);
+    return res.status(500).json({
+      message: 'Lỗi máy chủ',
+      status: 500,
+    });
+  }
+};
 
-//     // Lấy thông tin user từ DB
-//     const user = await User.findById(userId).select('-password');
+exports.checkUserIsExist = async (req, res, next) => {
+  try {
+    const { username, email, password, familyId } = req.body;
 
-//     if (!user) {
-//       return res.status(404).json({ message: 'User not found.' });
-//     }
+    const existingUser = await User.findOne({
+      email,
+    });
 
-//     res.status(200).json({ message: 'success', data: user });
-//   } catch (error) {
-//     console.error('Error while getting user by ID:', error);
-//     res.status(500).json({ message: 'Server error', error: error.message });
-//   }
-// };
+    if (existingUser) {
+      return res.status(400).json({
+        message: 'Email đã tồn tại. Hãy sử dụng email khác',
+        status: 400,
+      });
+    }
 
-// // Get all recipes of an user
-// exports.findAllRecipesByUser = async (req, res) => {
-//   try {
-//     const { userId } = req.params;
-//     const loggedInUserId = req.user._id; // Lấy ID user từ token
+    req.username = username;
+    req.email = email;
+    req.password = password;
+    req.familyId = familyId;
 
-//     console.log('🔹 userId from params:', userId);
-//     console.log('🔹 loggedInUserId from token:', loggedInUserId);
-//     // Kiểm tra userId hợp lệ
-//     if (!mongoose.Types.ObjectId.isValid(userId)) {
-//       return res.status(400).json({ message: 'Invalid User ID format.' });
-//     }
+    next();
+  } catch (error) {
+    console.error('Lỗi khi kiểm tra tài khoản người dùng', error);
+    return res.status(500).json({
+      message: 'Lỗi máy chủ',
+      status: 500,
+    });
+  }
+};
 
-//     // Kiểm tra quyền truy cập
-//     if (userId !== loggedInUserId.toString()) {
-//       return res
-//         .status(403)
-//         .json({ message: 'Forbidden - You can only view your own recipes.' });
-//     }
+exports.login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body; // Chú ý lấy thông tin từ req.body thay vì req.email
 
-//     // Lấy page và limit từ query params, mặc định page = 1, limit = 10
-//     const page = parseInt(req.query.page) || 1;
-//     const limit = parseInt(req.query.limit) || 10;
-//     const skip = (page - 1) * limit;
+    // Kiểm tra xem email có tồn tại không
+    const user = await User.findOne({ email });
 
-//     // Đếm tổng số công thức
-//     const totalRecipes = await Recipe.countDocuments({ owner: userId });
+    if (!user) {
+      return res.status(400).json({
+        message: 'Email không tồn tại trong hệ thống',
+        status: 400,
+      });
+    }
 
-//     // Lấy danh sách công thức có phân trang
-//     const recipes = await Recipe.find({ owner: userId })
-//       .skip(skip)
-//       .limit(limit);
+    // Kiểm tra mật khẩu
+    if (user.password !== password) {
+      return res.status(400).json({
+        message: 'Mật khẩu không đúng',
+        status: 400,
+      });
+    }
 
-//     // Tính tổng số trang
-//     const totalPages = Math.ceil(totalRecipes / limit);
+    // Trả về kết quả khi đăng nhập thành công
+    return res.status(200).json({
+      message: 'Đăng nhập thành công',
+      status: 200,
+      data: user,
+    });
+  } catch (error) {
+    console.log('Lỗi khi đăng nhập tài khoản người dùng', error);
+    return res.status(500).json({
+      message: 'Lỗi khi đăng nhập tài khoản người dùng',
+      status: 500,
+      error,
+    });
+  }
+};
 
-//     res.status(200).json({
-//       message: 'success',
-//       currentPage: page,
-//       totalPages,
-//       totalRecipes,
-//       data: recipes,
-//     });
-//   } catch (error) {
-//     console.error('Error while getting recipes by user ID:', error);
-//     res.status(500).json({ message: 'Server error', error: error.message });
-//   }
-// };
+exports.registerUser = async (req, res, next) => {
+  // "username": "vulv","password": "123456","email": "luuvanvua7k16vt@gmail.com","familyId": "67d2bed97b36eb9903fb29a8"
+  try {
+    const username = req.username;
+    const email = req.email;
+    const password = req.password;
+    const familyId = req.familyId;
 
-// //get detail recipes of an user
-// exports.findDetail = async (req, res) => {
-//   try {
-//     const { userId, recipeId } = req.params;
-//     const loggedInUserId = req.user._id; // Lấy ID từ token
+    const resultCreated = await User.create({
+      username,
+      email,
+      password,
+      familyId,
+    });
 
-//     console.log('🔹 userId from params:', userId);
-//     console.log('🔹 loggedInUserId from token:', loggedInUserId);
-//     console.log('🔹 recipeId from params:', recipeId);
+    // Trả về kết quả hiển thị dưới dạng json
+    return res.status(200).json({
+      message: 'success',
+      status: 200,
+      data: resultCreated,
+    });
+  } catch (error) {
+    console.log('Lỗi khi tạo tài khoản người dùng', error);
+    return res.status(500).json({
+      message: 'Lỗi khi tạo tài khoản người dùng',
+      status: 500,
+      error,
+    });
+  }
+};
 
-//     // Kiểm tra định dạng ID hợp lệ
-//     if (
-//       !mongoose.Types.ObjectId.isValid(userId) ||
-//       !mongoose.Types.ObjectId.isValid(recipeId)
-//     ) {
-//       return res.status(400).json({ message: 'Invalid ID format.' });
-//     }
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const { username, email, password, avatar } = req.body;
+    const { userId } = req.params;
 
-//     // Kiểm tra quyền truy cập
-//     if (!loggedInUserId.equals(userId)) {
-//       return res
-//         .status(403)
-//         .json({ message: 'Forbidden - You can only view your own recipes.' });
-//     }
+    const existingUser = await User.findById(userId);
+    if (!existingUser) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
 
-//     // Tìm công thức theo ID và kiểm tra owner
-//     const recipe = await Recipe.findOne({ _id: recipeId, owner: userId });
+    // Cập nhật dữ liệu người dùng
+    const updateData = {
+      username,
+      email,
+      password,
+      avatar,
+      updatedAt: Date.now(),
+    };
 
-//     if (!recipe) {
-//       return res.status(404).json({ message: 'Recipe not found' });
-//     }
+    // Thực hiện cập nhật
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    });
 
-//     res.status(200).json({
-//       message: 'success',
-//       data: recipe,
-//     });
-//   } catch (error) {
-//     console.error('Error while getting recipe details:', error);
-//     res.status(500).json({ message: 'Server error', error: error.message });
-//   }
-// };
-
-// //Update in4 user
-
-// exports.updateUser = async (req, res) => {
-//   try {
-//     const { username, email, password, description } = req.body;
-//     const { userId } = req.params;
-//     const loggedInUserId = req.user._id; // Lấy ID từ token
-
-//     console.log('🔹 userId from params:', userId);
-//     console.log('🔹 loggedInUserId from token:', loggedInUserId);
-
-//     // Kiểm tra định dạng ObjectId hợp lệ
-//     if (!mongoose.Types.ObjectId.isValid(userId)) {
-//       return res.status(400).json({ message: 'Invalid User ID format.' });
-//     }
-
-//     // Kiểm tra quyền cập nhật: Chỉ cho phép user cập nhật thông tin của chính mình
-//     if (!loggedInUserId.equals(userId)) {
-//       return res
-//         .status(403)
-//         .json({ message: 'Forbidden - You can only update your own profile.' });
-//     }
-
-//     // Kiểm tra sự tồn tại của user trong DB
-//     const existingUser = await User.findById(userId);
-//     if (!existingUser) {
-//       return res.status(404).json({ message: 'User not found' });
-//     }
-
-//     // Cập nhật dữ liệu người dùng
-//     const updateData = {
-//       username,
-//       email,
-//       password,
-//       description,
-//       updatedAt: Date.now(),
-//     };
-
-//     // Thực hiện cập nhật
-//     const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
-//       new: true,
-//     });
-
-//     return res.status(200).json({
-//       message: 'Update successful',
-//       data: updatedUser,
-//     });
-//   } catch (error) {
-//     console.error('Error while updating user:', error);
-//     return res
-//       .status(500)
-//       .json({ message: 'Server error', error: error.message });
-//   }
-// };
+    return res.status(200).json({
+      message: 'Cập nhật thông tin thành công',
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error('Lỗi khi cập nhật thông tin:', error);
+    return res
+      .status(500)
+      .json({ message: 'Server error', error: error.message });
+  }
+};

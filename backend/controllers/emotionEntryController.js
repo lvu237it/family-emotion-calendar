@@ -1,254 +1,115 @@
-// const Comment = require("../models/commentModel");
-// const User = require("../models/userModel");
-// const {
-//   isValidObjectId,
-//   isValidUser,
-//   isAdmin,
-//   isValidRecipe,
-//   isValidComment,
-//   isCommentMadeByUser,
-// } = require("./utils");
+const EmotionEntry = require('../models/emotionEntryModel');
+const User = require('../models/userModel');
 
-// // Get all comments for a specific recipe
-// exports.getAllComments = async (req, res) => {
-//   try {
-//     const { recipeId } = req.params;
+//Ghi lại emotion của bạn
+exports.addYourEmotionInDay = async (req, res, next) => {
+  try {
+    const { emoji, notes, dateString } = req.body;
+    const { userId } = req.params;
 
-//     if (!isValidObjectId(recipeId)) {
-//       return res.status(400).json({ error: "Invalid recipe ID." });
-//     }
+    if (!emoji || !dateString || !userId) {
+      return res.status(400).json({ message: 'Thiếu thông tin cần thiết' });
+    }
 
-//     if (!(await isValidRecipe(recipeId))) {
-//       return res.status(404).json({ error: "Recipe does not exist." });
-//     }
+    // Kiểm tra xem người dùng đã chọn emoji vào ngày này chưa
+    const existingEmotion = await EmotionEntry.findOne({ userId, dateString });
 
-//     const comments = await Comment.find({ recipe: recipeId, isDeleted: false });
-//     res.status(200).json(comments);
-//   } catch (error) {
-//     res.status(500).json({ error: "Failed to retrieve comments." });
-//   }
-// };
+    if (existingEmotion) {
+      return res
+        .status(400)
+        .json({ message: 'Bạn đã chọn emoji cho ngày này rồi!' });
+    }
 
-// // Admin adds a comment to a recipe
-// exports.adminAddComment = async (req, res) => {
-//   try {
-//     const { adminId, recipeId } = req.params;
-//     const { content } = req.body;
+    // Tạo mới một emotion entry
+    const newEmotion = new EmotionEntry({
+      emoji,
+      notes,
+      dateString,
+      userId,
+    });
 
-//     if (!isValidObjectId(adminId) || !isValidObjectId(recipeId)) {
-//       return res.status(400).json({ error: "Invalid admin or recipe ID." });
-//     }
+    await newEmotion.save();
 
-//     if (!content?.trim()) {
-//       return res
-//         .status(400)
-//         .json({ error: "Comment content cannot be empty." });
-//     }
+    res.status(201).json({
+      message: 'Cảm xúc của bạn đã được lưu thành công!',
+      data: newEmotion,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Lỗi khi lưu cảm xúc!',
+      error: error.message,
+    });
+  }
+};
 
-//     if (!(await isValidRecipe(recipeId))) {
-//       return res.status(404).json({ error: "Recipe does not exist." });
-//     }
+exports.updateYourEmotionInDay = async (req, res, next) => {
+  try {
+    const { emoji, notes, dateString } = req.body;
+    const { userId } = req.params;
 
-//     if (!(await isAdmin(adminId))) {
-//       return res
-//         .status(403)
-//         .json({ error: "Unauthorised: User is not an admin." });
-//     }
+    if (!emoji || !dateString || !userId) {
+      return res.status(400).json({ message: 'Thiếu thông tin cần thiết' });
+    }
 
-//     // Retrieve the admin's user data for caching
-//     const adminUser = await User.findById(adminId);
+    // Tìm cảm xúc của người dùng trong ngày này
+    const existingEmotion = await EmotionEntry.findOne({ userId, dateString });
 
-//     const newComment = new Comment({
-//       content,
-//       user: adminId,
-//       recipe: recipeId,
-//       authorUsername: adminUser.username,
-//       authorImageUrl: adminUser.avatar,
-//     });
-//     await newComment.save();
-//     res.status(201).json(newComment);
-//   } catch (error) {
-//     res.status(500).json({ error: "Failed to create comment." });
-//   }
-// };
+    if (!existingEmotion) {
+      return res
+        .status(404)
+        .json({ message: 'Không tìm thấy cảm xúc của bạn trong ngày này!' });
+    }
 
-// // User adds a comment to a recipe
-// exports.userAddComment = async (req, res) => {
-//   try {
-//     const { userId, recipeId } = req.params;
-//     const { content } = req.body;
+    // Cập nhật emoji và ghi chú mới
+    existingEmotion.emoji = emoji;
+    existingEmotion.notes = notes || existingEmotion.notes; // Nếu có ghi chú mới thì cập nhật
 
-//     if (!isValidObjectId(userId) || !isValidObjectId(recipeId)) {
-//       return res.status(400).json({ error: "Invalid user or recipe ID." });
-//     }
+    await existingEmotion.save();
 
-//     if (!content?.trim()) {
-//       return res
-//         .status(400)
-//         .json({ error: "Comment content cannot be empty." });
-//     }
+    res.status(200).json({
+      message: 'Cập nhật cảm xúc thành công!',
+      data: existingEmotion,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Lỗi khi cập nhật cảm xúc!',
+      error: error.message,
+    });
+  }
+};
 
-//     if (!(await isValidUser(userId))) {
-//       return res.status(404).json({ error: "User does not exist." });
-//     }
+// Lấy danh sách các emoji (emotion entries) của các thành viên trong gia đình trong một ngày
+exports.getFamilyEmojisInDay = async (req, res, next) => {
+  try {
+    const { familyId, dateString } = req.params;
 
-//     if (!(await isValidRecipe(recipeId))) {
-//       return res.status(404).json({ error: "Recipe does not exist." });
-//     }
+    // Lấy danh sách thành viên của gia đình
+    const members = await User.find({ familyId });
+    console.log('members:', members);
 
-//     // Retrieve the user's data for caching
-//     const user = await User.findById(userId);
+    // Nếu không tìm thấy thành viên nào trong gia đình
+    if (!members || members.length === 0) {
+      return res.status(404).json({
+        message: 'Không có thành viên nào trong gia đình',
+        status: 404,
+      });
+    }
 
-//     const newComment = new Comment({
-//       content,
-//       user: userId,
-//       recipe: recipeId,
-//       authorUsername: user.username,
-//       authorImageUrl: user.avatar,
-//     });
-//     await newComment.save();
-//     res.status(201).json(newComment);
-//   } catch (error) {
-//     res.status(500).json({ error: "Failed to create comment." });
-//   }
-// };
+    const emojis = await EmotionEntry.find({
+      userId: { $in: members.map((member) => member._id) },
+      dateString, // Kiểm tra nếu dateString trong EmotionEntry có khớp
+    }).populate('userId', 'username avatar email');
 
-// // Admin edits a comment
-// exports.adminEditComment = async (req, res) => {
-//   try {
-//     const { adminId, commentId } = req.params;
-//     const { content } = req.body;
-
-//     if (!isValidObjectId(adminId) || !isValidObjectId(commentId)) {
-//       return res.status(400).json({ error: "Invalid admin or comment ID." });
-//     }
-
-//     if (!content?.trim()) {
-//       return res
-//         .status(400)
-//         .json({ error: "Comment content cannot be empty." });
-//     }
-
-//     if (!(await isAdmin(adminId))) {
-//       return res
-//         .status(403)
-//         .json({ error: "Unauthorised: User is not an admin." });
-//     }
-
-//     if (!(await isValidComment(commentId))) {
-//       return res.status(404).json({ error: "Comment does not exist." });
-//     }
-
-//     if (!(await isCommentMadeByUser(commentId, adminId))) {
-//       return res
-//         .status(403)
-//         .json({ error: "Unauthorised: Cannot edit others' comments." });
-//     }
-
-//     const updatedComment = await Comment.findByIdAndUpdate(
-//       commentId,
-//       { content, updatedAt: Date.now() },
-//       { new: true }
-//     );
-//     res.status(200).json(updatedComment);
-//   } catch (error) {
-//     res.status(500).json({ error: "Failed to update comment." });
-//   }
-// };
-
-// // User edits their own comment
-// exports.userEditComment = async (req, res) => {
-//   try {
-//     const { userId, commentId } = req.params;
-//     const { content } = req.body;
-
-//     if (!isValidObjectId(userId) || !isValidObjectId(commentId)) {
-//       return res.status(400).json({ error: "Invalid user or comment ID." });
-//     }
-
-//     if (!content?.trim()) {
-//       return res
-//         .status(400)
-//         .json({ error: "Comment content cannot be empty." });
-//     }
-
-//     if (!(await isValidComment(commentId))) {
-//       return res.status(404).json({ error: "Comment does not exist." });
-//     }
-
-//     if (!(await isCommentMadeByUser(commentId, userId))) {
-//       return res
-//         .status(403)
-//         .json({ error: "Unauthorised: Cannot edit others' comments." });
-//     }
-
-//     const updatedComment = await Comment.findByIdAndUpdate(
-//       commentId,
-//       { content, updatedAt: Date.now() },
-//       { new: true }
-//     );
-//     res.status(200).json(updatedComment);
-//   } catch (error) {
-//     res.status(500).json({ error: "Failed to update comment." });
-//   }
-// };
-
-// // Admin deletes any comment
-// exports.adminDeleteComment = async (req, res) => {
-//   try {
-//     const { adminId, commentId } = req.params;
-
-//     if (!isValidObjectId(adminId) || !isValidObjectId(commentId)) {
-//       return res.status(400).json({ error: "Invalid admin or comment ID." });
-//     }
-
-//     if (!(await isValidComment(commentId))) {
-//       return res.status(404).json({ error: "Comment does not exist." });
-//     }
-
-//     if (!(await isAdmin(adminId))) {
-//       return res
-//         .status(403)
-//         .json({ error: "Unauthorised: User is not an admin." });
-//     }
-
-//     const deletedComment = await Comment.findByIdAndUpdate(
-//       commentId,
-//       { isDeleted: true, deletedAt: Date.now(), updatedAt: Date.now() },
-//       { new: true }
-//     );
-//     res.status(200).json(deletedComment);
-//   } catch (error) {
-//     res.status(500).json({ error: "Failed to delete comment." });
-//   }
-// };
-
-// // User deletes their own comment
-// exports.userDeleteComment = async (req, res) => {
-//   try {
-//     const { userId, commentId } = req.params;
-
-//     if (!isValidObjectId(userId) || !isValidObjectId(commentId)) {
-//       return res.status(400).json({ error: "Invalid user or comment ID." });
-//     }
-
-//     if (!(await isValidComment(commentId))) {
-//       return res.status(404).json({ error: "Comment does not exist." });
-//     }
-
-//     if (!(await isCommentMadeByUser(commentId, userId))) {
-//       return res
-//         .status(403)
-//         .json({ error: "Unauthorised: Cannot delete others' comments." });
-//     }
-
-//     const deletedComment = await Comment.findByIdAndUpdate(
-//       commentId,
-//       { isDeleted: true, deletedAt: Date.now(), updatedAt: Date.now() },
-//       { new: true }
-//     );
-//     res.status(200).json(deletedComment);
-//   } catch (error) {
-//     res.status(500).json({ error: "Failed to delete comment." });
-//   }
-// };
+    return res.status(200).json({
+      message: 'Danh sách emoji của các thành viên trong gia đình',
+      status: 200,
+      data: emojis,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: 'Lỗi khi lấy danh sách emoji của gia đình',
+      status: 500,
+      error: err.message,
+    });
+  }
+};
