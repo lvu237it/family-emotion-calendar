@@ -4,24 +4,31 @@ import { SafeAreaView } from 'react-native';
 import Index from './components/Index';
 import Header from './components/Header';
 import { Common } from './contexts/CommonContext';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer } from '@react-navigation/native';
+import Home from './components/Home';
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
     <Common>
-      <SafeAreaView style={styles.container}>
-        <Header />
-        <Index />
-        {/* <StatusBar style='auto' /> */}
-      </SafeAreaView>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName='Home'>
+          <Stack.Screen
+            name='Home'
+            component={Home}
+            options={{ headerShown: false }} // Ẩn header nếu cần
+          />
+          {/* Thêm các màn hình khác nếu cần */}
+          {/* Ví dụ:
+          <Stack.Screen
+            name="Details"
+            component={Details}
+            options={{ title: 'Chi tiết' }}
+          /> */}
+        </Stack.Navigator>
+      </NavigationContainer>
     </Common>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const CommonContext = createContext();
 
 export const useCommon = () => useContext(CommonContext);
@@ -93,6 +95,7 @@ export const Common = ({ children }) => {
         emotionCalendarDataTotal,
         userId,
         setUserId,
+        AsyncStorage,
       }}
     >
       {children}
