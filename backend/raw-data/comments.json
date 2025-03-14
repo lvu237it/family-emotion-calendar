@@ -1,0 +1,20 @@
+[
+  {
+    "_id": { "$oid": "6794f1ee4e687e91ace99e92" },
+    "content": "Hope you feel better!",
+    "photo": null,
+    "dateString": "2025-01-24",
+    "userId": { "$oid": "6794f1aa4e687e91ace99e86" },
+    "createdAt": "2025-01-24T16:00:00.000Z",
+    "isDeleted": false
+  },
+  {
+    "_id": { "$oid": "6794f1ef4e687e91ace99e93" },
+    "content": "Stay strong! 💪",
+    "photo": null,
+    "dateString": "2025-01-24",
+    "userId": { "$oid": "6794f1ab4e687e91ace99e88" },
+    "createdAt": "2025-01-24T17:00:00.000Z",
+    "isDeleted": false
+  }
+]

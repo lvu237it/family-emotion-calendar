@@ -1,5 +1,5 @@
 const express = require('express');
-const authenticationController = require('../controllers/authenticationController');
 const router = express.Router();
+const specialDayController = require('../controllers/specialDayController');
 
 module.exports = router;

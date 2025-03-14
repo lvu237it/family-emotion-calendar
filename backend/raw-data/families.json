@@ -1,0 +1,7 @@
+[
+  {
+    "_id": { "$oid": "6794f1bb4e687e91ace99e87" },
+    "familyName": "Doe Family",
+    "createdAt": "2025-01-01T08:00:00.000Z"
+  }
+]

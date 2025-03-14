@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native';
 import Index from './components/Index';
 import Header from './components/Header';
-import { Common } from './contexts/CommonContext.jsx';
+import { Common } from './contexts/CommonContext';
 
 export default function App() {
   return (

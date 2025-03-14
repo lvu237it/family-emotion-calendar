@@ -1,17 +1,17 @@
-/*
-Định nghĩa router xử lý từng request từ phía client gửi tới server
-*/
-
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { protect } = require('../utils/auth');
 
-// Gọi tới các module xử lý request từ controller
-// router.post('/create-new-user', userController.createAnUser);
-router.get('/:userId', protect, userController.getUserById);
-router.get('/:userId/recipes', protect, userController.findAllRecipesByUser);
-router.get('/:userId/recipe/:recipeId', protect, userController.findDetail);
-router.patch('/:userId/edit-information', protect, userController.updateUser);
+router.get('/:userId', userController.getUserInformation);
+
+router.post(
+  '/register-user',
+  userController.checkUserIsExist,
+  userController.registerUser
+); //ok
+
+router.post('/login', userController.login); //ok
+
+router.patch('/:userId/edit-information', userController.updateProfile); //ok
 
 module.exports = router;
