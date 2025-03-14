@@ -1,0 +1,20 @@
+[
+    {
+      "_id": { "$oid": "6794f1aa4e687e91ace99e86" },
+      "username": "john doe",
+      "avatar": "/placeholder.svg",
+      "email": "john@gmail.com",
+      "password": "123456",
+      "createdAt": "2025-01-01T08:00:00.000Z",
+      "familyId": { "$oid": "6794f1bb4e687e91ace99e87" }
+    },
+    {
+      "_id": { "$oid": "6794f1ab4e687e91ace99e88" },
+      "username": "jane smith",
+      "avatar": "/placeholder.svg",
+      "email": "jane@gmail.com",
+      "password": "123456",
+      "createdAt": "2025-01-02T09:00:00.000Z",
+      "familyId": { "$oid": "6794f1bb4e687e91ace99e87" }
+    }
+  ]
