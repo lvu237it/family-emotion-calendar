@@ -132,7 +132,7 @@ const FamilyDiscussion = ({
             onPress={handleSubmit}
             disabled={!comment.trim()}
           >
-            <Feather name='send' size={18} color='black' />
+            <Feather name='send' size={18} color='white' />
           </Pressable>
         </View>
       )}
