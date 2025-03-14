@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native';
-import Index from './components/Index';
+import Index from './components/IndexEmotionCalendar';
 import Header from './components/Header';
 import { Common } from './contexts/CommonContext';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -14,18 +14,18 @@ export default function App() {
   return (
     <Common>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName='Home'>
+        <Stack.Navigator
+        // initialRouteName='Home'
+        >
           <Stack.Screen
             name='Home'
             component={Home}
             options={{ headerShown: false }} // Ẩn header nếu cần
           />
-          {/* Thêm các màn hình khác nếu cần */}
-          {/* Ví dụ:
-          <Stack.Screen
-            name="Details"
-            component={Details}
-            options={{ title: 'Chi tiết' }}
+          {/* <Stack.Screen
+            name='Introduction'
+            component={Introduction}
+            options={{ headerShown: false, title: 'Giới thiệu' }}
           /> */}
         </Stack.Navigator>
       </NavigationContainer>
