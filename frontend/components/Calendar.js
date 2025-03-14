@@ -25,10 +25,16 @@ const Calendar = ({ datesWithEntries = [], onSelectDate, selectedDate }) => {
 
     const firstDayOfMonth = new Date(year, month, 1);
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const dayOffset = firstDayOfMonth.getDay();
+    const dayOffset = firstDayOfMonth.getDay(); // 0 (Chủ Nhật) đến 6 (Thứ Bảy)
 
-    const days = Array(dayOffset).fill(null);
+    const days = [];
 
+    // Điền các ngày trống trước ngày đầu tiên của tháng
+    for (let i = 0; i < dayOffset; i++) {
+      days.push(null);
+    }
+
+    // Điền các ngày trong tháng
     for (let i = 1; i <= daysInMonth; i++) {
       const dayDate = new Date(year, month, i);
       const dateString = formatDate(dayDate);
@@ -43,9 +49,10 @@ const Calendar = ({ datesWithEntries = [], onSelectDate, selectedDate }) => {
       });
     }
 
+    // Điền các ngày trống sau ngày cuối cùng của tháng để hoàn thiện lưới 6 hàng
     const remainingDays = 7 - (days.length % 7);
     if (remainingDays < 7) {
-      for (let i = 1; i <= remainingDays; i++) {
+      for (let i = 0; i < remainingDays; i++) {
         days.push(null);
       }
     }
@@ -134,7 +141,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 16,
     overflow: 'hidden',
-    // margin: 16,
+    width: '100%', // Chiều rộng 100%
+    alignSelf: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -158,28 +166,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
-    // paddingBottom: 8,
+    marginBottom: 8, // Khoảng cách giữa các thứ và các ngày
   },
   weekDay: {
     fontSize: 12,
     fontWeight: '500',
     color: '#666',
-    width: 32,
     textAlign: 'center',
+    flex: 1, // Chia đều khoảng cách
   },
   daysGrid: {
-    marginTop: 10,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    // padding: 2,
+    gap: 8, // Khoảng cách giữa các ngày
+    paddingHorizontal: 10,
+    justifyContent: 'center',
   },
   day: {
-    width: 32,
-    height: 32,
+    width: '12%', // Mỗi ngày chiếm 12% chiều rộng (7 ngày = 84%, còn lại là gap)
+    height: 40, // Chiều cao cố định
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 16,
-    margin: 8.5,
+    borderRadius: '100%', // Border tròn
+    // marginVertical: 4, // Khoảng cách trên và dưới giữa các ngày
   },
   dayText: {
     fontSize: 14,
