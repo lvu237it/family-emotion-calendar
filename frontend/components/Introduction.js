@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   StyleSheet,
   SafeAreaView,
@@ -8,29 +8,34 @@ import {
   Text,
   ImageBackground,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { useFonts } from 'expo-font';
 import AppLoading from 'expo-app-loading';
-import { useNavigation } from '@react-navigation/native'; // Import hook useNavigation
+import { useNavigation } from '@react-navigation/native';
+import { useCommon } from '../contexts/CommonContext';
 
 function Introduction() {
-  const navigation = useNavigation(); // Lấy đối tượng navigation
-  // Load font trước khi hiển thị màn hình
+  const navigation = useNavigation();
+  const { userLoggedIn, isLoading } = useCommon();
+
   const [fontsLoaded] = useFonts({
     AtlantixDisplaySsiDisplayItalic: require('../assets/fonts/Playwrite CU.ttf'),
   });
 
-  if (!fontsLoaded) {
-    return <AppLoading />;
+  useEffect(() => {
+    if (!isLoading && userLoggedIn) {
+      navigation.replace('Home');
+    }
+  }, [isLoading, userLoggedIn, navigation]);
+
+  if (!fontsLoaded || isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size='large' color='#007bff' />
+      </View>
+    );
   }
-
-  const handleNavigateToCreateFamily = () => {
-    navigation.navigate('CreateFamily');
-  };
-
-  const handleNavigateToLogin = () => {
-    navigation.navigate('Login');
-  };
 
   return (
     <View style={styles.container}>
@@ -52,14 +57,14 @@ function Introduction() {
 
       <TouchableOpacity
         style={styles.buttonIntroduction}
-        onPress={handleNavigateToCreateFamily}
+        onPress={() => navigation.navigate('CreateFamily')}
       >
         <Text style={styles.buttonText}>Bắt đầu</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.haveAnAccount}
-        onPress={handleNavigateToLogin}
+        onPress={() => navigation.navigate('Login')}
       >
         <Text style={styles.haveAnAccountText}>
           Bạn đã có tài khoản? <Text style={styles.loginTitle}>Đăng nhập</Text>
@@ -68,8 +73,6 @@ function Introduction() {
     </View>
   );
 }
-
-export default Introduction;
 
 const styles = StyleSheet.create({
   container: {
@@ -130,4 +133,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
 });
+
+export default Introduction;

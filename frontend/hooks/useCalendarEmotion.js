@@ -1,47 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { getTodayDate } from '../utils/emotionUtils.js';
 import { useCommon } from '../contexts/CommonContext.js';
 
 export function useCalendarEmotion() {
   const {
-    emotionCalendarDataTotal,
+    familyData,
     userId,
     setUserId,
+    emotionCalendarDataTotal,
+    setEmotionCalendarDataTotal,
     myFamily,
-    familyData,
-    setFamilyData,
-  } = useCommon(); // Lấy userId từ CommonContext
-  const [loading, setLoading] = useState(true);
+    apiBaseUrl,
+    axios,
+  } = useCommon();
+
   const [currentDate, setCurrentDate] = useState(getTodayDate());
-
-  // Fetch data from emotionCalendarDataTotal
-  useEffect(() => {
-    const fetchData = async () => {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Set familyData from emotionCalendarDataTotal
-      if (emotionCalendarDataTotal && emotionCalendarDataTotal[myFamily._id]) {
-        setFamilyData(emotionCalendarDataTotal[myFamily._id]);
-        // Set default userId to the first member if not set
-        if (
-          !userId &&
-          emotionCalendarDataTotal[myFamily._id].members.length > 0
-        ) {
-          setUserId(emotionCalendarDataTotal[myFamily._id].members[0].id);
-        }
-      } else {
-        setFamilyData({
-          members: [],
-          calendar: {},
-        });
-      }
-
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [myFamily, emotionCalendarDataTotal, userId, setUserId]);
 
   // Get current day's data
   const getCurrentDayData = () => {
@@ -51,15 +24,12 @@ export function useCalendarEmotion() {
         discussion: { comments: [] },
       };
     }
-
-    const dayData = { ...familyData.calendar[currentDate] };
-
-    // Ensure discussion exists
-    if (!dayData.discussion) {
-      dayData.discussion = { comments: [] };
-    }
-
-    return dayData;
+    return {
+      ...familyData.calendar[currentDate],
+      discussion: familyData.calendar[currentDate].discussion || {
+        comments: [],
+      },
+    };
   };
 
   // Get user's emotion for current date
@@ -69,65 +39,72 @@ export function useCalendarEmotion() {
   };
 
   // Update user's emotion
-  const updateUserEmotion = (emoji, note) => {
-    if (!familyData || !userId) return;
+  const updateUserEmotion = async (emoji, note) => {
+    if (!familyData || !userId || !myFamily) return;
 
-    const updatedFamilyData = { ...familyData };
+    try {
+      // Update on server
+      await axios.post(`http://${apiBaseUrl}/calendars/update-emotion`, {
+        familyId: myFamily._id,
+        userId,
+        date: currentDate,
+        emotion: { emoji, note },
+      });
 
-    // Initialize the day if it doesn't exist
-    if (!updatedFamilyData.calendar[currentDate]) {
-      updatedFamilyData.calendar[currentDate] = {};
+      // Update local state
+      const updatedCalendarData = { ...emotionCalendarDataTotal };
+      if (!updatedCalendarData[myFamily._id].calendar[currentDate]) {
+        updatedCalendarData[myFamily._id].calendar[currentDate] = {};
+      }
+      updatedCalendarData[myFamily._id].calendar[currentDate][userId] = {
+        emoji,
+        note,
+      };
+      setEmotionCalendarDataTotal(updatedCalendarData);
+    } catch (error) {
+      console.error('Error updating emotion:', error);
+      throw error;
     }
-
-    // Update user's emotion
-    updatedFamilyData.calendar[currentDate] = {
-      ...updatedFamilyData.calendar[currentDate],
-      [userId]: { emoji, note },
-    };
-
-    // Ensure discussion exists
-    if (!updatedFamilyData.calendar[currentDate].discussion) {
-      updatedFamilyData.calendar[currentDate].discussion = { comments: [] };
-    }
-
-    setFamilyData(updatedFamilyData);
-
-    // In a real app, you would save to database here
-    console.log('Updated emotion:', { date: currentDate, userId, emoji, note });
   };
 
   // Add a comment to the discussion
-  const addComment = (text) => {
-    if (!familyData || !userId) return;
+  const addComment = async (text) => {
+    if (!familyData || !userId || !myFamily) return;
 
-    const updatedFamilyData = { ...familyData };
+    try {
+      const newComment = {
+        userId,
+        text,
+        timestamp: new Date().toISOString(),
+      };
 
-    // Initialize the day if it doesn't exist
-    if (!updatedFamilyData.calendar[currentDate]) {
-      updatedFamilyData.calendar[currentDate] = {};
+      // Update on server
+      await axios.post(`http://${apiBaseUrl}/calendars/add-comment`, {
+        familyId: myFamily._id,
+        date: currentDate,
+        comment: newComment,
+      });
+
+      // Update local state
+      const updatedCalendarData = { ...emotionCalendarDataTotal };
+      if (!updatedCalendarData[myFamily._id].calendar[currentDate]) {
+        updatedCalendarData[myFamily._id].calendar[currentDate] = {
+          discussion: { comments: [] },
+        };
+      }
+      if (!updatedCalendarData[myFamily._id].calendar[currentDate].discussion) {
+        updatedCalendarData[myFamily._id].calendar[currentDate].discussion = {
+          comments: [],
+        };
+      }
+      updatedCalendarData[myFamily._id].calendar[
+        currentDate
+      ].discussion.comments.push(newComment);
+      setEmotionCalendarDataTotal(updatedCalendarData);
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      throw error;
     }
-
-    // Initialize discussion if it doesn't exist
-    if (!updatedFamilyData.calendar[currentDate].discussion) {
-      updatedFamilyData.calendar[currentDate].discussion = { comments: [] };
-    }
-
-    // Add comment
-    const newComment = {
-      userId,
-      text,
-      timestamp: new Date().toISOString(),
-    };
-
-    updatedFamilyData.calendar[currentDate].discussion.comments = [
-      ...updatedFamilyData.calendar[currentDate].discussion.comments,
-      newComment,
-    ];
-
-    setFamilyData(updatedFamilyData);
-
-    // In a real app, you would save to database here
-    console.log('Added comment:', { date: currentDate, userId, text });
   };
 
   // Get all dates that have entries
@@ -143,7 +120,6 @@ export function useCalendarEmotion() {
 
   return {
     familyData,
-    loading,
     currentDate,
     userId,
     changeDate,

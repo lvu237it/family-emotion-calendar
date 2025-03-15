@@ -6,16 +6,16 @@ import { categorizeEmotion } from '../utils/emotionUtils';
 const EmotionSummary = ({ dayData, familyMembers }) => {
   if (
     !dayData ||
-    Object.keys(dayData).filter((key) => key !== 'discussion').length === 0
+    Object.keys(dayData).filter((key) => key !== 'discussion')?.length === 0
   ) {
     return null;
   }
 
   const emotionCounts = { positive: 0, neutral: 0, negative: 0 };
-  const memberCount = familyMembers.length;
+  const memberCount = familyMembers?.length || 0;
   let recordedCount = 0;
 
-  familyMembers.forEach((member) => {
+  familyMembers?.forEach((member) => {
     const memberData = dayData[member.id];
     if (memberData?.emoji) {
       const category = categorizeEmotion(memberData.emoji);

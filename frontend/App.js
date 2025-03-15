@@ -15,12 +15,12 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        // initialRouteName='Introduction'
+        initialRouteName='Introduction'
         screenOptions={{
           cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
         }}
       >
-        {/* <Stack.Screen
+        <Stack.Screen
           name='Introduction'
           component={Introduction}
           options={{ headerShown: false, title: 'Giới thiệu' }}
@@ -39,7 +39,7 @@ export default function App() {
           name='RegisterPersonalAccount'
           component={RegisterPersonalAccount}
           options={{ headerShown: false, title: 'Đăng ký tài khoản cá nhân' }}
-        /> */}
+        />
         <Stack.Screen
           name='Home'
           component={Home}

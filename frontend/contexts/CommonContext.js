@@ -9,14 +9,15 @@ export const useCommon = () => useContext(CommonContext);
 
 export const Common = ({ children }) => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [myFamilyIdToSeparate, setMyFamilyIdToSeparate] = useState(null);
-  const [myFamily, setMyFamily] = useState({});
+  const [myFamily, setMyFamily] = useState(null);
   const [myFamilyMembers, setMyFamilyMembers] = useState([]);
+  const [myFamilyIdToSeparate, setMyFamilyIdToSeparate] = useState('');
   const [emotionCalendarDataTotal, setEmotionCalendarDataTotal] = useState({});
   const [userLoggedIn, setUserLoggedIn] = useState(null);
   const [userId, setUserId] = useState(null);
   const [isSuccessCreateAccount, setIsSuccessCreateAccount] = useState(false);
   const [familyData, setFamilyData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const myip = process.env.EXPO_PUBLIC_IPV4_ADDRESS;
 
@@ -31,108 +32,83 @@ export const Common = ({ children }) => {
 
   const apiBaseUrl = getApiBaseUrl();
 
+  // Check for stored user data on app start
   useEffect(() => {
-    if (Platform.OS === 'ios') {
-      console.log('Thiết bị đang chạy iOS');
-    } else if (Platform.OS === 'android') {
-      console.log('Thiết bị đang chạy Android');
-    }
-    console.log('getApiBaseUrl', getApiBaseUrl());
+    const checkStoredUser = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem('userLoggedIn');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          setUserLoggedIn(userData);
+          setUserId(userData._id);
+        }
+      } catch (error) {
+        console.error('Error checking stored user:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkStoredUser();
   }, []);
 
+  // Fetch family data when user is logged in
   useEffect(() => {
-    // Lấy danh sách các thành viên trong gia đình
-    if (myFamily && myFamily._id && userLoggedIn) {
-      console.log('Fetching members for family:', myFamily._id);
-      fetch(`http://${apiBaseUrl}/families/${myFamily._id}/members`)
-        .then((response) => response.json())
-        .then((members) => {
-          const formattedMembers = members.map((member) => ({
+    const fetchFamilyData = async () => {
+      if (!userLoggedIn) return;
+
+      try {
+        // First get family data
+        const familyResponse = await axios.get(
+          `http://${apiBaseUrl}/families/by-userId/${userLoggedIn._id}`
+        );
+
+        if (familyResponse.data) {
+          setMyFamily(familyResponse.data);
+
+          // Then get family members
+          const membersResponse = await axios.get(
+            `http://${apiBaseUrl}/families/${familyResponse.data._id}/members`
+          );
+
+          const formattedMembers = membersResponse.data.map((member) => ({
             id: member._id,
             name: member.username,
             avatar: member.avatar,
           }));
-          console.log('Members fetched:', formattedMembers);
           setMyFamilyMembers(formattedMembers);
-        })
-        .catch((error) => {
-          console.error('Error fetching members:', error);
-          setMyFamilyMembers([]);
-        });
-    }
 
-    // Lấy thông tin calendar của gia đình
-    if (myFamily && myFamily._id && userLoggedIn) {
-      console.log('Fetching calendar data for family:', myFamily._id);
-      fetch(
-        `http://${apiBaseUrl}/calendars/get-calendar-of-family/${myFamily._id}`
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          console.log('Calendar data fetched:', data);
-          setEmotionCalendarDataTotal(data);
-        })
-        .catch((error) => {
-          console.error('Error fetching calendar data:', error);
-          setEmotionCalendarDataTotal({});
-        });
-    }
+          // Finally get calendar data
+          const calendarResponse = await axios.get(
+            `http://${apiBaseUrl}/calendars/get-calendar-of-family/${familyResponse.data._id}`
+          );
 
-    //Trường hợp login - khi chưa có family data trước đó mà chỉ có userLoggedIn
-    if (!myFamily && !myFamily._id && userLoggedIn) {
-      // Lấy dữ liệu gia đình
-      const fetchFamilyDataByUserId = async () => {
-        try {
-          if (userLoggedIn && !myFamily._id) {
-            const response = await axios.get(
-              `http://${apiBaseUrl}/families/by-userId/${userLoggedIn._id}`
-            );
-            if (response.data) {
-              setMyFamily(response.data);
-            }
-          }
-        } catch (error) {
-          console.error('Lỗi khi lấy dữ liệu family từ người dùng:', error);
+          setEmotionCalendarDataTotal(calendarResponse.data);
+          setFamilyData(calendarResponse.data[familyResponse.data._id]);
         }
-      };
-
-      fetchFamilyDataByUserId(); //Lấy được family để sử dụng cho việc fetchData từ
-
-      // Sau đó lấy dữ liệu calendar
-      fetch(
-        `http://${apiBaseUrl}/calendars/get-calendar-of-family/${myFamily._id}`
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          console.log('Calendar data fetched:', data);
-          // setEmotionCalendarDataTotal(data);
-          setFamilyData(data[myFamily._id]);
-        })
-        .catch((error) => {
-          console.error('Error fetching calendar data:', error);
-          setEmotionCalendarDataTotal({});
-        });
-
-      // setFamilyData(emotionCalendarDataTotal[myFamily._id]);
-    }
-  }, [myFamily, userLoggedIn]);
-
-  useEffect(() => {
-    console.log('apiBaseUrl', apiBaseUrl);
-
-    const removeItemFirstRender = async () => {
-      const getUserLoggedIn = await AsyncStorage.getItem('userLoggedIn');
-      console.log('getuserlogin', getUserLoggedIn);
-      if (getUserLoggedIn) {
-        await AsyncStorage.removeItem('userLoggedIn');
+      } catch (error) {
+        console.error('Error fetching family data:', error);
       }
     };
-    removeItemFirstRender();
-  }, []);
 
-  useEffect(() => {
-    console.log('userlogin', userLoggedIn);
-  }, [userLoggedIn]);
+    fetchFamilyData();
+  }, [userLoggedIn, apiBaseUrl]);
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('userLoggedIn');
+      setUserLoggedIn(null);
+      setUserId(null);
+      setMyFamily(null);
+      setMyFamilyMembers([]);
+      setEmotionCalendarDataTotal({});
+      setFamilyData(null);
+      return true;
+    } catch (error) {
+      console.error('Error during logout:', error);
+      return false;
+    }
+  };
 
   return (
     <CommonContext.Provider
@@ -150,8 +126,6 @@ export const Common = ({ children }) => {
         setUserId,
         AsyncStorage,
         apiBaseUrl,
-        myFamilyIdToSeparate,
-        setMyFamilyIdToSeparate,
         userLoggedIn,
         setUserLoggedIn,
         isSuccessCreateAccount,
@@ -159,6 +133,10 @@ export const Common = ({ children }) => {
         familyData,
         setFamilyData,
         setEmotionCalendarDataTotal,
+        handleLogout,
+        isLoading,
+        myFamilyIdToSeparate,
+        setMyFamilyIdToSeparate,
       }}
     >
       {children}

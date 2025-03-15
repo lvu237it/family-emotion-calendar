@@ -54,7 +54,7 @@ function CreateFamily() {
         { familyName: familyNameInput }
       );
       setMyFamily(response.data);
-      setMyFamilyIdToSeparate(response.data.familyName);
+      // setMyFamilyIdToSeparate(response?.data?.familyName);
 
       // setModalVisible(false); // Đóng modal trước
       navigation.navigate('RegisterPersonalAccount'); // Sau đó chuyển hướng
