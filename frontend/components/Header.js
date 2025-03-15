@@ -17,18 +17,18 @@ function Header() {
   } = useCommon();
   const navigation = useNavigation();
 
-  const getUserDisplayName = () => {
-    if (!familyData?.members || !userId) {
-      return userLoggedIn?.username || 'User';
-    }
-    const member = familyData.members.find((m) => m.id === userId);
-    return member?.name || userLoggedIn?.username || 'User';
-  };
+  // const getUserDisplayName = () => {
+  //   if (!familyData?.members || !userId) {
+  //     return userLoggedIn?.username || 'User';
+  //   }
+  //   const member = familyData.members.find((m) => m.id === userId);
+  //   return member?.name || userLoggedIn?.username || 'User';
+  // };
 
-  const switchUser = (id) => {
-    setUserId(id);
-    setUserMenuOpen(false);
-  };
+  // const switchUser = (id) => {
+  //   setUserId(id);
+  //   setUserMenuOpen(false);
+  // };
 
   const onLogout = async () => {
     const success = await handleLogout();
@@ -50,14 +50,16 @@ function Header() {
             <View style={styles.userIcon}>
               <Feather name='user' size={16} color='black' />
             </View>
-            <Text style={styles.userName}>{getUserDisplayName()}</Text>
+            <Text style={styles.userName}>
+              {userLoggedIn?.username || 'User'}
+            </Text>
           </Pressable>
 
           <Pressable onPress={onLogout} style={styles.logoutButton}>
             <Feather name='log-out' size={20} color='black' />
           </Pressable>
 
-          {userMenuOpen && familyData?.members && (
+          {/* {userMenuOpen && familyData?.members && (
             <View style={styles.userMenu}>
               {familyData.members.map((member) => (
                 <Pressable
@@ -72,7 +74,7 @@ function Header() {
                 </Pressable>
               ))}
             </View>
-          )}
+          )} */}
         </View>
       </View>
     </View>

@@ -112,22 +112,37 @@ const User = require('../models/userModel');
 exports.getEmotionCalendarDataOfFamily = async (req, res, next) => {
   try {
     const { familyId } = req.params;
-    console.log('famid', familyId);
 
-    // Bước 1: Tìm tất cả User thuộc gia đình này
+    // Get all users in the family
     const users = await User.find({ familyId });
-    const userIds = users.map((user) => user._id); // Lấy danh sách userId
+    const userIds = users.map((user) => user._id);
 
-    // Bước 2: Truy vấn tất cả EmotionEntry và Comment của các User này
+    // Get all calendars for this family
+    const calendar = await Calendar.findOne({
+      familyId,
+      calendarType: 'emotion',
+    });
+
+    if (!calendar) {
+      return res.status(404).json({
+        message: 'Calendar not found for this family',
+        status: 404,
+      });
+    }
+
+    // Get all emotion entries for all dates in the calendar
     const emotionEntries = await EmotionEntry.find({
       userId: { $in: userIds },
+      dateString: { $in: calendar.dateStringArray },
     });
-    const comments = await Comment.find({ userId: { $in: userIds } });
 
-    console.log('comments', comments);
-    console.log('emotionEntries', emotionEntries);
+    // Get all comments for all dates in the calendar
+    const comments = await Comment.find({
+      userId: { $in: userIds },
+      dateString: { $in: calendar.dateStringArray },
+    });
 
-    // Bước 3: Tạo một map để lưu thông tin user (username và avatar)
+    // Create user map for easy lookup
     const userMap = {};
     users.forEach((user) => {
       userMap[user._id] = {
@@ -136,7 +151,7 @@ exports.getEmotionCalendarDataOfFamily = async (req, res, next) => {
       };
     });
 
-    // Bước 4: Hàm ánh xạ emoji thành biểu tượng mặt
+    // Map emoji to display format
     const mapEmoji = (emoji) => {
       switch (emoji) {
         case 'Happy':
@@ -164,45 +179,48 @@ exports.getEmotionCalendarDataOfFamily = async (req, res, next) => {
       }
     };
 
-    // Bước 5: Nhóm dữ liệu theo dateString
+    // Initialize calendar data with all dates from the calendar
     const calendarData = {};
-
-    // Xử lý EmotionEntry
-    emotionEntries.forEach((entry) => {
-      const { dateString, userId, emoji, note } = entry;
-
-      if (!calendarData[dateString]) {
-        calendarData[dateString] = {
-          discussion: { comments: [] },
-        };
-      }
-
-      // Thêm thông tin user và ánh xạ emoji
-      calendarData[dateString][userMap[userId].username] = {
-        emoji: mapEmoji(emoji),
-        note,
-        username: userMap[userId].username, // Thêm username của user
+    calendar.dateStringArray.forEach((date) => {
+      calendarData[date] = {
+        discussion: { comments: [] },
       };
-    });
-
-    // Xử lý Comment
-    comments.forEach((comment) => {
-      const { dateString, userId, content, createdAt } = comment;
-
-      if (!calendarData[dateString]) {
-        calendarData[dateString] = {
-          discussion: { comments: [] },
+      // Initialize empty emotion data for all users
+      users.forEach((user) => {
+        calendarData[date][user.username] = {
+          emoji: '',
+          note: '',
+          username: user.username,
         };
-      }
-
-      calendarData[dateString].discussion.comments.push({
-        userId,
-        text: content,
-        timestamp: createdAt.toISOString(), // Đảm bảo định dạng ISO string
       });
     });
 
-    // Bước 6: Tạo response với định dạng giống mockFamilyData
+    // Add emotion entries
+    emotionEntries.forEach((entry) => {
+      const { dateString, userId, emoji, note } = entry;
+      const username = userMap[userId].username;
+      if (calendarData[dateString]) {
+        calendarData[dateString][username] = {
+          emoji: mapEmoji(emoji),
+          note,
+          username,
+        };
+      }
+    });
+
+    // Add comments
+    comments.forEach((comment) => {
+      const { dateString, userId, content, createdAt } = comment;
+      if (calendarData[dateString]) {
+        calendarData[dateString].discussion.comments.push({
+          userId,
+          text: content,
+          timestamp: createdAt.toISOString(),
+        });
+      }
+    });
+
+    // Format final response
     const responseData = {
       [familyId]: {
         members: users.map((user) => ({
@@ -216,10 +234,11 @@ exports.getEmotionCalendarDataOfFamily = async (req, res, next) => {
 
     return res.status(200).json(responseData);
   } catch (error) {
-    console.error('Lỗi khi lấy dữ liệu calendar', error);
+    console.error('Error getting calendar data:', error);
     return res.status(500).json({
-      message: 'Lỗi máy chủ',
+      message: 'Server error',
       status: 500,
+      error: error.message,
     });
   }
 };
@@ -499,7 +518,7 @@ exports.addComment = async (req, res) => {
       createdAt: comment.timestamp,
     });
 
-    // Update calendar entry
+    // Update calendar entry if needed
     const calendar = await Calendar.findOne({
       familyId,
       calendarType: 'emotion',
@@ -510,15 +529,64 @@ exports.addComment = async (req, res) => {
       await calendar.save();
     }
 
-    // Get updated calendar data
-    const updatedCalendarData = await this.getEmotionCalendarDataOfFamily(
-      {
-        params: { familyId },
-      },
-      res
-    );
+    // Get all users in the family
+    const users = await User.find({ familyId });
+    const userIds = users.map((user) => user._id);
 
-    res.status(200).json(updatedCalendarData);
+    // Get all emotion entries for this date
+    const emotionEntries = await EmotionEntry.find({
+      dateString: date,
+      userId: { $in: userIds },
+    });
+
+    // Get all comments for this date
+    const comments = await Comment.find({
+      dateString: date,
+      userId: { $in: userIds },
+    });
+
+    // Create user map for easy lookup
+    const userMap = {};
+    users.forEach((user) => {
+      userMap[user._id] = {
+        username: user.username,
+        avatar: user.avatar,
+      };
+    });
+
+    // Format the response data
+    const dateData = {
+      discussion: {
+        comments: comments.map((comment) => ({
+          userId: comment.userId,
+          text: comment.content,
+          timestamp: comment.createdAt.toISOString(),
+        })),
+      },
+    };
+
+    // Add emotion data for each user
+    emotionEntries.forEach((entry) => {
+      const username = userMap[entry.userId].username;
+      dateData[username] = {
+        emoji: entry.emoji,
+        note: entry.note,
+        username: username,
+      };
+    });
+
+    res.status(200).json({
+      [familyId]: {
+        members: users.map((user) => ({
+          id: user._id,
+          name: user.username,
+          avatar: user.avatar,
+        })),
+        calendar: {
+          [date]: dateData,
+        },
+      },
+    });
   } catch (error) {
     console.error('Error adding comment:', error);
     res.status(500).json({
