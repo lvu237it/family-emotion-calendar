@@ -2,9 +2,15 @@ import { useState, useEffect } from 'react';
 import { getTodayDate } from '../utils/emotionUtils.js';
 import { useCommon } from '../contexts/CommonContext.js';
 
-export function useCalendarEmotion(familyId = '67d2bed97b36eb9903fb29a8') {
-  const { emotionCalendarDataTotal, userId, setUserId } = useCommon(); // Lấy userId từ CommonContext
-  const [familyData, setFamilyData] = useState(null);
+export function useCalendarEmotion() {
+  const {
+    emotionCalendarDataTotal,
+    userId,
+    setUserId,
+    myFamily,
+    familyData,
+    setFamilyData,
+  } = useCommon(); // Lấy userId từ CommonContext
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(getTodayDate());
 
@@ -15,11 +21,14 @@ export function useCalendarEmotion(familyId = '67d2bed97b36eb9903fb29a8') {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Set familyData from emotionCalendarDataTotal
-      if (emotionCalendarDataTotal && emotionCalendarDataTotal[familyId]) {
-        setFamilyData(emotionCalendarDataTotal[familyId]);
+      if (emotionCalendarDataTotal && emotionCalendarDataTotal[myFamily._id]) {
+        setFamilyData(emotionCalendarDataTotal[myFamily._id]);
         // Set default userId to the first member if not set
-        if (!userId && emotionCalendarDataTotal[familyId].members.length > 0) {
-          setUserId(emotionCalendarDataTotal[familyId].members[0].id);
+        if (
+          !userId &&
+          emotionCalendarDataTotal[myFamily._id].members.length > 0
+        ) {
+          setUserId(emotionCalendarDataTotal[myFamily._id].members[0].id);
         }
       } else {
         setFamilyData({
@@ -32,7 +41,7 @@ export function useCalendarEmotion(familyId = '67d2bed97b36eb9903fb29a8') {
     };
 
     fetchData();
-  }, [familyId, emotionCalendarDataTotal, userId, setUserId]);
+  }, [myFamily, emotionCalendarDataTotal, userId, setUserId]);
 
   // Get current day's data
   const getCurrentDayData = () => {

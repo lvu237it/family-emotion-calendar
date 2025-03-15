@@ -23,6 +23,16 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "custom": {
+            "Playwrite CU": "./assets/fonts/Playwrite CU.ttf"
+          }
+        }
+      ]
+    ]
   }
 }

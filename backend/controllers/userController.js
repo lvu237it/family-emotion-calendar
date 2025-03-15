@@ -1,4 +1,6 @@
 const User = require('../models/userModel');
+const mongoose = require('mongoose');
+const { ObjectId } = require('mongodb');
 
 exports.getUserInformation = async (req, res, next) => {
   try {
@@ -98,16 +100,16 @@ exports.login = async (req, res, next) => {
 exports.registerUser = async (req, res, next) => {
   // "username": "vulv","password": "123456","email": "luuvanvua7k16vt@gmail.com","familyId": "67d2bed97b36eb9903fb29a8"
   try {
-    const username = req.username;
-    const email = req.email;
-    const password = req.password;
-    const familyId = req.familyId;
+    const { username, email, password, familyId } = req.body;
+
+    // Cast familyId thành ObjectId
+    const familyObjectId = ObjectId.createFromHexString(familyId);
 
     const resultCreated = await User.create({
       username,
       email,
       password,
-      familyId,
+      familyId: familyObjectId,
     });
 
     // Trả về kết quả hiển thị dưới dạng json

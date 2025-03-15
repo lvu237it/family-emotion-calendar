@@ -15,11 +15,7 @@ exports.registerFamily = async (req, res, next) => {
     });
 
     // Trả về kết quả hiển thị dưới dạng json
-    return res.status(200).json({
-      message: 'success',
-      status: 200,
-      data: resultCreated,
-    });
+    return res.status(200).json(resultCreated);
   } catch (error) {
     console.log('Lỗi khi tạo family', error);
     return res.status(500).json({
@@ -54,6 +50,32 @@ exports.getYourFamilyByFamilyId = async (req, res, next) => {
     return res.status(500).json({
       message: 'Lỗi khi lấy thông tin family',
       status: 500,
+      error: error.message,
+    });
+  }
+};
+
+exports.getYourFamilyByUserId = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    // Tìm user dựa trên userId để lấy familyId
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    // Dùng familyId từ user để tìm family
+    const family = await Family.findById(user.familyId);
+    if (!family) {
+      return res.status(404).json({ message: 'Không tìm thấy gia đình' });
+    }
+
+    res.status(200).json(family);
+  } catch (error) {
+    console.error('Lỗi khi lấy thông tin gia đình:', error);
+    return res.status(500).json({
+      message: 'Lỗi khi lấy thông tin gia đình',
       error: error.message,
     });
   }

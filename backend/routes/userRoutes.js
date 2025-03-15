@@ -6,7 +6,7 @@ router.get('/:userId', userController.getUserInformation);
 
 router.post(
   '/register-user',
-  userController.checkUserIsExist,
+  // userController.checkUserIsExist,
   userController.registerUser
 ); //ok
 

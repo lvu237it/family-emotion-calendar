@@ -1,6 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Playwrite+DK+Uloopet:wght@100..400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playwrite+CU:wght@100..400&display=swap');
 
 @layer base {
   :root {
@@ -81,16 +83,21 @@
   }
 }
 
+#introduction-welcome {
+  font-family: 'Playwrite CU', sans-serif;
+  @apply font-bold text-teal-400;
+}
+/* 
 /* Calendar styles */
-.calendar-container {
+/* .calendar-container {
   @apply rounded-2xl shadow-lg bg-white overflow-hidden relative transition-all duration-300;
 }
 
 .calendar-header {
   @apply p-4 flex justify-between items-center bg-primary/5 border-b border-primary/10;
-}
+} */
 
-.calendar-day {
+/* .calendar-day {
   @apply relative flex items-center justify-center rounded-full transition-all duration-300 ease-in-out;
   aspect-ratio: 1/1;
 }
@@ -105,10 +112,10 @@
 
 .calendar-day-has-emotion {
   @apply after:absolute after:bottom-1 after:w-1.5 after:h-1.5 after:rounded-full after:bg-primary/80;
-}
+} */
 
 /* Emotion modal */
-.emotion-selector {
+/* .emotion-selector {
   @apply grid grid-cols-5 gap-3 p-6;
 }
 
@@ -122,12 +129,12 @@
 
 .emotion-item-selected {
   @apply bg-primary/10 ring-2 ring-primary;
-}
+} */
 
-.modal-overlay {
+/* .modal-overlay {
   @apply fixed inset-0 bg-foreground/30 backdrop-blur-sm z-50;
-}
+} */
 
-.modal-content {
+/* .modal-content {
   @apply fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background rounded-2xl shadow-xl overflow-hidden max-h-[85vh] w-[90vw] max-w-md z-50 animate-in;
-}
+}  */

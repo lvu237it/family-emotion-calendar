@@ -107,12 +107,12 @@ const IndexEmotionCalendar = () => {
           <View style={styles.detailsSection}>
             <EmotionSummary
               dayData={dayData}
-              familyMembers={familyData.members}
+              familyMembers={familyData?.members}
             />
 
             <FamilyDiscussion
               discussion={dayData.discussion || { comments: [] }}
-              familyMembers={familyData.members}
+              familyMembers={familyData?.members}
               userId={userId}
               onAddComment={handleCommentAdd}
               isToday={isTodaySelected}

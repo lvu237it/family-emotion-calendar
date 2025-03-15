@@ -9,24 +9,27 @@ export const useCommon = () => useContext(CommonContext);
 
 export const Common = ({ children }) => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const exampleFamilyId = '67d2bed97b36eb9903fb29a8';
-  const [myFamily, setMyFamily] = useState(null);
+  const [myFamilyIdToSeparate, setMyFamilyIdToSeparate] = useState(null);
+  const [myFamily, setMyFamily] = useState({});
   const [myFamilyMembers, setMyFamilyMembers] = useState([]);
   const [emotionCalendarDataTotal, setEmotionCalendarDataTotal] = useState({});
-  const [userId, setUserId] = useState(null); // Thêm state để quản lý userId
-  // Sử dụng cho thiết bị iOS khi call api
+  const [userLoggedIn, setUserLoggedIn] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [isSuccessCreateAccount, setIsSuccessCreateAccount] = useState(false);
+  const [familyData, setFamilyData] = useState(null);
+
   const myip = process.env.EXPO_PUBLIC_IPV4_ADDRESS;
 
   const getApiBaseUrl = () => {
     if (Platform.OS === 'ios') {
       return `${myip}:3000`;
-      // Mở cmd, nhập 'ipconfig' => lấy IPv4
-      // 'http://<IP-của-máy-host>:3000'; // Thay <IP-của-máy-host> bằng IP thực của máy host
     } else if (Platform.OS === 'android') {
-      return '10.0.2.2:3000'; // Android Emulator sử dụng 10.0.2.2 để truy cập localhost
+      return '10.0.2.2:3000';
     }
     return 'localhost:3000';
   };
+
+  const apiBaseUrl = getApiBaseUrl();
 
   useEffect(() => {
     if (Platform.OS === 'ios') {
@@ -37,55 +40,105 @@ export const Common = ({ children }) => {
     console.log('getApiBaseUrl', getApiBaseUrl());
   }, []);
 
-  // Fetch family info và members
   useEffect(() => {
-    const ip = getApiBaseUrl();
-    // Fetch family info
-    fetch(`http://${ip}/families/${exampleFamilyId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('fam', data);
-        setMyFamily(data);
-      })
-      .catch((error) => console.error('Error fetching family:', error));
+    // Lấy danh sách các thành viên trong gia đình
+    if (myFamily && myFamily._id && userLoggedIn) {
+      console.log('Fetching members for family:', myFamily._id);
+      fetch(`http://${apiBaseUrl}/families/${myFamily._id}/members`)
+        .then((response) => response.json())
+        .then((members) => {
+          const formattedMembers = members.map((member) => ({
+            id: member._id,
+            name: member.username,
+            avatar: member.avatar,
+          }));
+          console.log('Members fetched:', formattedMembers);
+          setMyFamilyMembers(formattedMembers);
+        })
+        .catch((error) => {
+          console.error('Error fetching members:', error);
+          setMyFamilyMembers([]);
+        });
+    }
 
-    // Fetch family members
-    fetch(`http://${ip}/families/${exampleFamilyId}/members`)
-      .then((response) => response.json())
-      .then((members) => {
-        // Định dạng lại thành viên để khớp với mock data
-        const formattedMembers = members.map((member) => ({
-          id: member._id,
-          name: member.username,
-          avatar: member.avatar,
-        }));
-        console.log('members', formattedMembers);
-        setMyFamilyMembers(formattedMembers);
-      })
-      .catch((error) => console.error('Error fetching members:', error));
+    // Lấy thông tin calendar của gia đình
+    if (myFamily && myFamily._id && userLoggedIn) {
+      console.log('Fetching calendar data for family:', myFamily._id);
+      fetch(
+        `http://${apiBaseUrl}/calendars/get-calendar-of-family/${myFamily._id}`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          console.log('Calendar data fetched:', data);
+          setEmotionCalendarDataTotal(data);
+        })
+        .catch((error) => {
+          console.error('Error fetching calendar data:', error);
+          setEmotionCalendarDataTotal({});
+        });
+    }
 
-    //Lấy dữ liệu calendar tổng hợp của 1 gia đình qua từng ngày
-    fetch(`http://${ip}/calendars/get-calendar-of-family/${exampleFamilyId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('data total', data);
-        setEmotionCalendarDataTotal(data);
-      })
-      .catch((error) =>
-        console.error('Error fetching total of emotion calendar data:', error)
-      );
+    //Trường hợp login - khi chưa có family data trước đó mà chỉ có userLoggedIn
+    if (!myFamily && !myFamily._id && userLoggedIn) {
+      // Lấy dữ liệu gia đình
+      const fetchFamilyDataByUserId = async () => {
+        try {
+          if (userLoggedIn && !myFamily._id) {
+            const response = await axios.get(
+              `http://${apiBaseUrl}/families/by-userId/${userLoggedIn._id}`
+            );
+            if (response.data) {
+              setMyFamily(response.data);
+            }
+          }
+        } catch (error) {
+          console.error('Lỗi khi lấy dữ liệu family từ người dùng:', error);
+        }
+      };
+
+      fetchFamilyDataByUserId(); //Lấy được family để sử dụng cho việc fetchData từ
+
+      // Sau đó lấy dữ liệu calendar
+      fetch(
+        `http://${apiBaseUrl}/calendars/get-calendar-of-family/${myFamily._id}`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          console.log('Calendar data fetched:', data);
+          // setEmotionCalendarDataTotal(data);
+          setFamilyData(data[myFamily._id]);
+        })
+        .catch((error) => {
+          console.error('Error fetching calendar data:', error);
+          setEmotionCalendarDataTotal({});
+        });
+
+      // setFamilyData(emotionCalendarDataTotal[myFamily._id]);
+    }
+  }, [myFamily, userLoggedIn]);
+
+  useEffect(() => {
+    console.log('apiBaseUrl', apiBaseUrl);
+
+    const removeItemFirstRender = async () => {
+      const getUserLoggedIn = await AsyncStorage.getItem('userLoggedIn');
+      console.log('getuserlogin', getUserLoggedIn);
+      if (getUserLoggedIn) {
+        await AsyncStorage.removeItem('userLoggedIn');
+      }
+    };
+    removeItemFirstRender();
   }, []);
 
   useEffect(() => {
-    console.log('famdata', emotionCalendarDataTotal);
-  }, [emotionCalendarDataTotal]);
+    console.log('userlogin', userLoggedIn);
+  }, [userLoggedIn]);
 
   return (
     <CommonContext.Provider
       value={{
         axios,
         myip,
-        exampleFamilyId,
         userMenuOpen,
         setUserMenuOpen,
         myFamily,
@@ -96,6 +149,16 @@ export const Common = ({ children }) => {
         userId,
         setUserId,
         AsyncStorage,
+        apiBaseUrl,
+        myFamilyIdToSeparate,
+        setMyFamilyIdToSeparate,
+        userLoggedIn,
+        setUserLoggedIn,
+        isSuccessCreateAccount,
+        setIsSuccessCreateAccount,
+        familyData,
+        setFamilyData,
+        setEmotionCalendarDataTotal,
       }}
     >
       {children}
