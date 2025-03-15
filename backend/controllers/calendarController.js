@@ -168,23 +168,6 @@ exports.getEmotionCalendarDataOfFamily = async (req, res, next) => {
     const calendarData = {};
 
     // Xử lý EmotionEntry
-    // emotionEntries.forEach((entry) => {
-    //   const { dateString, userId, emoji, note } = entry;
-
-    //   if (!calendarData[dateString]) {
-    //     calendarData[dateString] = {
-    //       discussion: { comments: [] },
-    //     };
-    //   }
-
-    //   // Thêm thông tin user và ánh xạ emoji
-    //   calendarData[dateString][userId] = {
-    //     emoji: mapEmoji(emoji),
-    //     note,
-    //   };
-    // });
-
-    // Xử lý EmotionEntry
     emotionEntries.forEach((entry) => {
       const { dateString, userId, emoji, note } = entry;
 
@@ -404,6 +387,143 @@ exports.updateEmotionCalendar = async (req, res, next) => {
     return res.status(500).json({
       message: 'Lỗi máy chủ',
       status: 500,
+    });
+  }
+};
+
+// Add new endpoint to update emotion
+exports.updateEmotion = async (req, res) => {
+  try {
+    const { familyId, userId, date, emotion } = req.body;
+
+    // Create or update emotion entry
+    const emotionEntry = await EmotionEntry.findOneAndUpdate(
+      { userId, dateString: date },
+      {
+        emoji: emotion.emoji,
+        note: emotion.note,
+        dateString: date,
+        userId,
+      },
+      { upsert: true, new: true }
+    );
+
+    // Update calendar entry if needed
+    const calendar = await Calendar.findOne({
+      familyId,
+      calendarType: 'emotion',
+    });
+
+    if (!calendar.dateStringArray.includes(date)) {
+      calendar.dateStringArray.push(date);
+      await calendar.save();
+    }
+
+    // Get all users in the family
+    const users = await User.find({ familyId });
+    const userIds = users.map((user) => user._id);
+
+    // Get all emotion entries for this date
+    const emotionEntries = await EmotionEntry.find({
+      dateString: date,
+      userId: { $in: userIds },
+    });
+
+    // Get all comments for this date
+    const comments = await Comment.find({
+      dateString: date,
+      userId: { $in: userIds },
+    });
+
+    // Create user map for easy lookup
+    const userMap = {};
+    users.forEach((user) => {
+      userMap[user._id] = {
+        username: user.username,
+        avatar: user.avatar,
+      };
+    });
+
+    // Format the response data
+    const dateData = {
+      discussion: {
+        comments: comments.map((comment) => ({
+          userId: comment.userId,
+          text: comment.content,
+          timestamp: comment.createdAt.toISOString(),
+        })),
+      },
+    };
+
+    // Add emotion data for each user
+    emotionEntries.forEach((entry) => {
+      const username = userMap[entry.userId].username;
+      dateData[username] = {
+        emoji: entry.emoji,
+        note: entry.note,
+        username: username,
+      };
+    });
+
+    res.status(200).json({
+      [familyId]: {
+        members: users.map((user) => ({
+          id: user._id,
+          name: user.username,
+          avatar: user.avatar,
+        })),
+        calendar: {
+          [date]: dateData,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error updating emotion:', error);
+    res.status(500).json({
+      message: 'Error updating emotion',
+      error: error.message,
+    });
+  }
+};
+
+// Add new endpoint to add comment
+exports.addComment = async (req, res) => {
+  try {
+    const { familyId, date, comment } = req.body;
+
+    // Create new comment
+    const newComment = await Comment.create({
+      content: comment.text,
+      dateString: date,
+      userId: comment.userId,
+      createdAt: comment.timestamp,
+    });
+
+    // Update calendar entry
+    const calendar = await Calendar.findOne({
+      familyId,
+      calendarType: 'emotion',
+    });
+
+    if (!calendar.dateStringArray.includes(date)) {
+      calendar.dateStringArray.push(date);
+      await calendar.save();
+    }
+
+    // Get updated calendar data
+    const updatedCalendarData = await this.getEmotionCalendarDataOfFamily(
+      {
+        params: { familyId },
+      },
+      res
+    );
+
+    res.status(200).json(updatedCalendarData);
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({
+      message: 'Error adding comment',
+      error: error.message,
     });
   }
 };

@@ -6,31 +6,28 @@ import { useCalendarEmotion } from '../hooks/useCalendarEmotion';
 import { useNavigation } from '@react-navigation/native';
 
 function Header() {
-  const { familyData } = useCalendarEmotion(); // Lấy familyData từ useCalendarEmotion
+  const { familyData } = useCalendarEmotion();
   const {
     userMenuOpen,
     setUserMenuOpen,
     userId,
     setUserId,
-    myFamily,
-    setMyFamily,
-    myFamilyMembers,
-    setMyFamilyMembers,
     userLoggedIn,
-    setUserLoggedIn,
-    AsyncStorage,
-    setFamilyData,
     handleLogout,
-  } = useCommon(); // Lấy các giá trị cần thiết từ CommonContext
-  const navigation = useNavigation(); // Sử dụng hook useNavigation để điều hướng
+  } = useCommon();
+  const navigation = useNavigation();
 
-  useEffect(() => {
-    console.log('familyData', familyData);
-  }, [familyData]);
+  const getUserDisplayName = () => {
+    if (!familyData?.members || !userId) {
+      return userLoggedIn?.username || 'User';
+    }
+    const member = familyData.members.find((m) => m.id === userId);
+    return member?.name || userLoggedIn?.username || 'User';
+  };
 
   const switchUser = (id) => {
-    setUserId(id); // Cập nhật userId trong CommonContext
-    setUserMenuOpen(false); // Đóng menu sau khi chọn user
+    setUserId(id);
+    setUserMenuOpen(false);
   };
 
   const onLogout = async () => {
@@ -53,28 +50,25 @@ function Header() {
             <View style={styles.userIcon}>
               <Feather name='user' size={16} color='black' />
             </View>
-            <Text style={styles.userName}>
-              {familyData?.members.find((member) => member.id === userId)
-                ?.name || 'User'}
-            </Text>
+            <Text style={styles.userName}>{getUserDisplayName()}</Text>
           </Pressable>
 
           <Pressable onPress={onLogout} style={styles.logoutButton}>
             <Feather name='log-out' size={20} color='black' />
           </Pressable>
 
-          {userMenuOpen && (
+          {userMenuOpen && familyData?.members && (
             <View style={styles.userMenu}>
-              {familyData?.members?.map((member) => (
+              {familyData.members.map((member) => (
                 <Pressable
-                  key={member?.id}
+                  key={member.id}
                   onPress={() => switchUser(member.id)}
                   style={[
                     styles.userMenuItem,
-                    userId === member?.id && styles.userMenuItemActive,
+                    userId === member.id && styles.userMenuItemActive,
                   ]}
                 >
-                  <Text style={styles.userMenuItemText}>{member?.name}</Text>
+                  <Text style={styles.userMenuItemText}>{member.name}</Text>
                 </Pressable>
               ))}
             </View>
@@ -112,7 +106,6 @@ const styles = StyleSheet.create({
   userMenuContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16, // Khoảng cách giữa nút đăng xuất và nút user
   },
   logoutButton: {
     padding: 8,

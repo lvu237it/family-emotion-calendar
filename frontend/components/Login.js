@@ -43,7 +43,6 @@ function Login() {
       return;
     }
 
-    // Bắt đầu hiệu ứng loading
     setIsLoading(true);
 
     try {
@@ -52,35 +51,27 @@ function Login() {
         password: passwordLogin,
       });
 
-      // Cập nhật thông tin người dùng đã đăng nhập
-      setUserLoggedIn(response.data.data);
-      // setUserId(response.data.data._id);
-
-      // Lưu thông tin người dùng vào AsyncStorage
+      // Store user data in AsyncStorage
       await AsyncStorage.setItem(
         'userLoggedIn',
         JSON.stringify(response.data.data)
       );
 
-      // Kết thúc hiệu ứng loading và hiển thị trạng thái thành công
+      // Update context
+      setUserLoggedIn(response.data.data);
+      setUserId(response.data.data._id);
+
       setIsLoading(false);
       setIsSuccessLogin(true);
 
-      // Đợi thêm 2 giây để hiển thị thông báo thành công trước khi chuyển hướng
       setTimeout(() => {
-        navigation.navigate('Home');
-      }, 2000); // Chuyển hướng sau 2 giây
+        navigation.replace('Home'); // Use replace instead of navigate
+      }, 2000);
     } catch (error) {
-      // Xử lý lỗi từ server
-      // console.error('Error logging in:', error.response?.data || error.message);
-
-      // Hiển thị thông báo lỗi từ server
       const errorMessage =
         error.response?.data?.message ||
         'Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại.';
       Alert.alert('Lỗi', errorMessage);
-
-      // Kết thúc hiệu ứng loading
       setIsLoading(false);
     }
   };
