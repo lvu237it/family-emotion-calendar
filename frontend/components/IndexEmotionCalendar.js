@@ -133,18 +133,29 @@ const IndexEmotionCalendar = () => {
           </View>
 
           <View style={styles.detailsSection}>
-            <EmotionSummary
-              dayData={dayData}
-              familyMembers={familyData?.members}
-            />
+            {isTodaySelected ? (
+              <>
+                <EmotionSummary
+                  dayData={dayData}
+                  familyMembers={familyData?.members}
+                  isToday={isTodaySelected}
+                />
 
-            <FamilyDiscussion
-              discussion={dayData.discussion || { comments: [] }}
-              familyMembers={familyData?.members}
-              userId={userId}
-              onAddComment={handleCommentAdd}
-              isToday={isTodaySelected}
-            />
+                <FamilyDiscussion
+                  discussion={dayData.discussion || { comments: [] }}
+                  familyMembers={familyData?.members}
+                  userId={userId}
+                  onAddComment={handleCommentAdd}
+                  isToday={isTodaySelected}
+                />
+              </>
+            ) : (
+              <View style={styles.notTodayMessage}>
+                <Text style={styles.notTodayText}>
+                  Thông tin chi tiết chưa khả dụng cho ngày này
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       </View>
@@ -278,5 +289,17 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#007bff',
+  },
+  notTodayMessage: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notTodayText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 });

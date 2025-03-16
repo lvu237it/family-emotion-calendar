@@ -114,7 +114,6 @@ const FamilyDiscussion = ({
                 </View>
               );
             })}
-            <View ref={commentsEndRef} />
           </View>
         )}
       </ScrollView>

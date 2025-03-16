@@ -3,8 +3,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { categorizeEmotion } from '../utils/emotionUtils';
 
-const EmotionSummary = ({ dayData, familyMembers }) => {
-  if (!dayData || !familyMembers) return null;
+const EmotionSummary = ({ dayData, familyMembers, isToday }) => {
+  if (!dayData || !familyMembers || !isToday) return null;
 
   const emotionCounts = { positive: 0, neutral: 0, negative: 0 };
   const memberCount = familyMembers.length;
