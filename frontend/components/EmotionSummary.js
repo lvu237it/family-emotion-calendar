@@ -1,9 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { categorizeEmotion } from '../utils/emotionUtils';
+import { useCalendarEmotion } from '../hooks/useCalendarEmotion';
+import { useCommon } from '../contexts/CommonContext';
 
 const EmotionSummary = ({ dayData, familyMembers }) => {
+  // const { emotionPercentages } = useCalendarEmotion(); //trả về [chứa các thành viên và emoji của hôm nay]
+  // const { emojiOfEachMemberInDay } = useCommon(); //non-use
+
+  // useEffect(() => {
+  //   console.log('emotionpercentage', emotionPercentages);
+  //   console.log('emojiOfEachMemberInDay', emojiOfEachMemberInDay);
+  // }, [emotionPercentages]);
+  // //Lấy số liệu thống kê (mới nhất sau khi được cập nhật - sau khi người dùng vote mood)
+
   if (
     !dayData ||
     Object.keys(dayData).filter((key) => key !== 'discussion')?.length === 0

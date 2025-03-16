@@ -17,43 +17,54 @@ export default function App() {
       <Stack.Navigator
         initialRouteName='Introduction'
         screenOptions={{
-          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+          gestureEnabled: false, // Disable swipe gesture for all screens by default
         }}
       >
         <Stack.Screen
           name='Introduction'
           component={Introduction}
-          options={{ headerShown: false, title: 'Giới thiệu' }}
+          options={{
+            headerShown: false,
+            title: 'Giới thiệu',
+            gestureEnabled: true, // Enable swipe gesture only for Introduction screen
+          }}
         />
         <Stack.Screen
           name='Login'
           component={Login}
-          options={{ headerShown: false, title: 'Đăng nhập' }}
+          options={{
+            headerShown: false,
+            title: 'Đăng nhập',
+            gestureEnabled: true, // Enable swipe gesture only for Login screen
+          }}
         />
         <Stack.Screen
           name='CreateFamily'
           component={CreateFamily}
-          options={{ headerShown: false, title: 'Tạo gia đình' }}
+          options={{
+            headerShown: false,
+            title: 'Tạo gia đình',
+            gestureEnabled: true, // Enable swipe gesture only for CreateFamily screen
+          }}
         />
         <Stack.Screen
           name='RegisterPersonalAccount'
           component={RegisterPersonalAccount}
-          options={{ headerShown: false, title: 'Đăng ký tài khoản cá nhân' }}
+          options={{
+            headerShown: false,
+            title: 'Đăng ký tài khoản cá nhân',
+            gestureEnabled: true, // Enable swipe gesture only for RegisterPersonalAccount screen
+          }}
         />
         <Stack.Screen
           name='Home'
           component={Home}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+            gestureEnabled: false, // Explicitly disable swipe gesture for Home screen
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});

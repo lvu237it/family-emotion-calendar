@@ -136,7 +136,8 @@ function RegisterPersonalAccount() {
   useEffect(() => {
     console.log('myfamily in register', myFamily);
     console.log('myfamily in register id', myFamily._id);
-  }, [myFamily]);
+    console.log('userLoggedIn at register', userLoggedIn);
+  }, [userLoggedIn]);
 
   return (
     <ImageBackground

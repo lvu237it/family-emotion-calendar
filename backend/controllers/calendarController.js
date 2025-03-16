@@ -475,14 +475,34 @@ exports.updateEmotion = async (req, res) => {
     };
 
     // Add emotion data for each user
-    emotionEntries.forEach((entry) => {
-      const username = userMap[entry.userId].username;
-      dateData[username] = {
-        emoji: entry.emoji,
-        note: entry.note,
-        username: username,
+    users.forEach((user) => {
+      const userEntry = emotionEntries.find(
+        (entry) => entry.userId.toString() === user._id.toString()
+      );
+      dateData[user.username] = {
+        emoji: userEntry ? userEntry.emoji : '',
+        note: userEntry ? userEntry.note : '',
+        username: user.username,
       };
     });
+
+    // Calculate emotion statistics
+    const emotionStats = {};
+    let totalVotes = 0;
+    emotionEntries.forEach((entry) => {
+      if (entry.emoji) {
+        emotionStats[entry.emoji] = (emotionStats[entry.emoji] || 0) + 1;
+        totalVotes++;
+      }
+    });
+
+    // Calculate percentages
+    const emotionPercentages = {};
+    Object.entries(emotionStats).forEach(([emoji, count]) => {
+      emotionPercentages[emoji] = Math.round((count / totalVotes) * 100);
+    });
+
+    dateData.emotionStats = emotionPercentages;
 
     res.status(200).json({
       [familyId]: {
