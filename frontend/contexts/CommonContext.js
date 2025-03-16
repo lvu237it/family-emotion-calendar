@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
 import { Platform } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,26 +18,22 @@ export const Common = ({ children }) => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [myFamily, setMyFamily] = useState(null);
   const [myFamilyMembers, setMyFamilyMembers] = useState([]);
-  const [myFamilyIdToSeparate, setMyFamilyIdToSeparate] = useState('');
   const [emotionCalendarDataTotal, setEmotionCalendarDataTotal] = useState({});
   const [userLoggedIn, setUserLoggedIn] = useState(null);
   const [userId, setUserId] = useState(null);
-  const [isSuccessCreateAccount, setIsSuccessCreateAccount] = useState(false);
   const [familyData, setFamilyData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [emotionPercentages, setEmotionPercentages] = useState([]);
-  const [emojiOfEachMemberInDay, setEmojiOfEachMemberInDay] = useState([]);
 
   const myip = process.env.EXPO_PUBLIC_IPV4_ADDRESS;
 
-  const getApiBaseUrl = () => {
+  const getApiBaseUrl = useCallback(() => {
     if (Platform.OS === 'ios') {
       return `${myip}:3000`;
     } else if (Platform.OS === 'android') {
       return '10.0.2.2:3000';
     }
     return 'localhost:3000';
-  };
+  }, [myip]);
 
   const apiBaseUrl = getApiBaseUrl();
 
@@ -54,29 +56,22 @@ export const Common = ({ children }) => {
     checkStoredUser();
   }, []);
 
-  const fetchFamilyData = async () => {
-    // if (!userLoggedIn) return;
+  const fetchFamilyData = useCallback(async () => {
+    if (!userLoggedIn?._id) return;
 
     try {
-      // First get family data
+      setIsLoading(true);
+
+      // Get family data
       const familyResponse = await axios.get(
-        //ok
         `http://${apiBaseUrl}/families/by-userId/${userLoggedIn._id}`
       );
 
       if (familyResponse.data) {
-        const fetchEmojiOfEachMemberInDay = await axios.get(
-          `http://${apiBaseUrl}/emotions/emojis-of-family/${
-            familyResponse.data._id
-          }/${getTodayDate()}`
-        );
-        setEmojiOfEachMemberInDay(fetchEmojiOfEachMemberInDay.data);
+        setMyFamily(familyResponse.data);
 
-        setMyFamily(familyResponse.data); //ok
-
-        // Then get family members
+        // Get family members
         const membersResponse = await axios.get(
-          //ok
           `http://${apiBaseUrl}/families/${familyResponse.data._id}/members`
         );
 
@@ -85,20 +80,24 @@ export const Common = ({ children }) => {
           name: member.username,
           avatar: member.avatar,
         }));
-        setMyFamilyMembers(formattedMembers); //ok
+        setMyFamilyMembers(formattedMembers);
 
-        // Finally get calendar data
+        // Get calendar data
         const calendarResponse = await axios.get(
           `http://${apiBaseUrl}/calendars/get-calendar-of-family/${familyResponse.data._id}`
         );
 
-        setEmotionCalendarDataTotal(calendarResponse.data);
-        setFamilyData(calendarResponse.data[familyResponse.data._id]);
+        if (calendarResponse.data) {
+          setEmotionCalendarDataTotal(calendarResponse.data);
+          setFamilyData(calendarResponse.data[familyResponse.data._id]);
+        }
       }
     } catch (error) {
       console.error('Error fetching family data:', error);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [userLoggedIn, apiBaseUrl]);
 
   // Fetch family data when user is logged in
   useEffect(() => {
@@ -124,21 +123,6 @@ export const Common = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    console.log('apibaseurl', apiBaseUrl);
-  }, [apiBaseUrl]);
-
-  useEffect(() => {
-    console.log('userlogin', userLoggedIn);
-  }, [userLoggedIn]);
-
-  useEffect(() => {
-    console.log('family data', familyData);
-    console.log('userId', userId);
-    console.log('myFamily', myFamily);
-    console.log('emotionCalendarDataTotal', emotionCalendarDataTotal);
-  }, [emotionCalendarDataTotal]);
-
   return (
     <CommonContext.Provider
       value={{
@@ -151,26 +135,18 @@ export const Common = ({ children }) => {
         myFamilyMembers,
         setMyFamilyMembers,
         emotionCalendarDataTotal,
+        setEmotionCalendarDataTotal,
         userId,
         setUserId,
         AsyncStorage,
         apiBaseUrl,
         userLoggedIn,
         setUserLoggedIn,
-        isSuccessCreateAccount,
-        setIsSuccessCreateAccount,
         familyData,
         setFamilyData,
-        setEmotionCalendarDataTotal,
         handleLogout,
         isLoading,
-        myFamilyIdToSeparate,
-        setMyFamilyIdToSeparate,
         fetchFamilyData,
-        emotionPercentages,
-        setEmotionPercentages,
-        emojiOfEachMemberInDay,
-        setEmojiOfEachMemberInDay,
       }}
     >
       {children}

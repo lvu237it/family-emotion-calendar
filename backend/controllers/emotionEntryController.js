@@ -1,6 +1,7 @@
 const EmotionEntry = require('../models/emotionEntryModel');
 const Calendar = require('../models/calendarModel');
 const User = require('../models/userModel');
+const Comment = require('../models/commentModel');
 
 //Ghi lại emotion của bạn
 exports.addYourEmotionInDay = async (req, res, next) => {
@@ -43,13 +44,118 @@ exports.addYourEmotionInDay = async (req, res, next) => {
   }
 };
 
+// Helper function to map emoji text to display emoji
+const mapEmojiToDisplay = (emojiText) => {
+  const emojiMap = {
+    Happy: '😊',
+    Sad: '😢',
+    Angry: '😡',
+    Tired: '😴',
+    Joyful: '😂',
+    Surprised: '😮',
+    Anxious: '😰',
+    Loved: '❤️',
+    Peaceful: '😌',
+    Thoughtful: '🤔',
+  };
+  return emojiMap[emojiText] || '';
+};
+
+// Helper function to get complete family data
+const getFamilyData = async (familyId, date) => {
+  // Get all family members
+  const familyMembers = await User.find({ familyId });
+  const userIds = familyMembers.map((member) => member._id);
+
+  // Get all emotion entries for this date
+  const emotionEntries = await EmotionEntry.find({
+    dateString: date,
+    userId: { $in: userIds },
+  });
+
+  // Get all comments for this date
+  const comments = await Comment.find({
+    dateString: date,
+    userId: { $in: userIds },
+  }).sort({ createdAt: 1 });
+
+  // Format member emotions and calculate statistics
+  const memberEmotions = {};
+  const emotionStats = {
+    Happy: 0,
+    Sad: 0,
+    Angry: 0,
+    Tired: 0,
+    Joyful: 0,
+    Surprised: 0,
+    Anxious: 0,
+    Loved: 0,
+    Peaceful: 0,
+    Thoughtful: 0,
+  };
+
+  emotionEntries.forEach((entry) => {
+    const member = familyMembers.find(
+      (m) => m._id.toString() === entry.userId.toString()
+    );
+    if (member) {
+      // Add member emotion
+      memberEmotions[member.username] = {
+        emoji: mapEmojiToDisplay(entry.emoji),
+        note: entry.notes,
+        username: member.username,
+      };
+      // Count emotions
+      emotionStats[entry.emoji] = (emotionStats[entry.emoji] || 0) + 1;
+    }
+  });
+
+  // Calculate percentages
+  const totalVotes = emotionEntries.length;
+  const emotionPercentages = {};
+  Object.entries(emotionStats).forEach(([emoji, count]) => {
+    if (count > 0) {
+      // Only include emotions that have votes
+      emotionPercentages[emoji] = Math.round((count / totalVotes) * 100);
+    }
+  });
+
+  // Debug information
+  console.log('getFamilyData Debug:');
+  console.log('Family Members:', familyMembers.length);
+  console.log('Emotion Entries:', emotionEntries.length);
+  console.log('Member Emotions:', memberEmotions);
+  console.log('Emotion Stats:', emotionStats);
+  console.log('Emotion Percentages:', emotionPercentages);
+
+  return {
+    members: familyMembers.map((member) => ({
+      id: member._id,
+      name: member.username,
+      avatar: member.avatar,
+    })),
+    calendar: {
+      [date]: {
+        ...memberEmotions,
+        emotionStats: emotionPercentages,
+        discussion: {
+          comments: comments.map((comment) => ({
+            userId: comment.userId,
+            text: comment.content,
+            timestamp: comment.createdAt,
+          })),
+        },
+      },
+    },
+  };
+};
+
 // Cập nhật hoặc tạo mới cảm xúc của người dùng và tính toán cảm xúc tổng hợp cho gia đình
 exports.updateUserEmotion = async (req, res) => {
   try {
     const { dateString, emoji, notes } = req.body;
     const { userId, familyId } = req.params;
 
-    // Validate required fields
     if (!userId || !familyId || !dateString || !emoji) {
       return res.status(400).json({
         message: 'Missing required fields',
@@ -57,7 +163,7 @@ exports.updateUserEmotion = async (req, res) => {
       });
     }
 
-    // Step 1: Get or create emotion calendar for the family
+    // Get or create emotion calendar
     let calendar = await Calendar.findOne({
       familyId,
       calendarType: 'emotion',
@@ -74,79 +180,26 @@ exports.updateUserEmotion = async (req, res) => {
       await calendar.save();
     }
 
-    // Step 2: Update or create emotion entry
+    // Update or create emotion entry
     await EmotionEntry.findOneAndUpdate(
-      { userId, dateString: dateString },
+      { userId, dateString },
       {
         emoji,
         notes,
-        dateString: dateString,
+        dateString,
         userId,
       },
       { upsert: true, new: true }
     );
 
-    // Step 3: Get all family members
-    const familyMembers = await User.find({ familyId });
-    const userIds = familyMembers.map((member) => member._id);
+    // Get complete updated family data
+    const familyData = await getFamilyData(familyId, dateString);
 
-    // Step 4: Get all emotion entries for this date
-    const allEmotionEntries = await EmotionEntry.find({
-      dateString: dateString,
-      userId: { $in: userIds },
-    });
-
-    // Step 5: Tạo danh sách cảm xúc theo người dùng
-    const emotionDetails = allEmotionEntries.map((entry) => {
-      const member = familyMembers.find(
-        (m) => m._id.toString() === entry.userId.toString()
-      );
-      return {
-        _id: member?._id,
-        username: member?.username,
-        avatar: member?.avatar,
-        email: member?.email,
-        createdAt: member?.createdAt,
-        updatedAt: member?.updatedAt || null,
-        emoji: entry.emoji,
-        note: entry.notes,
-      };
-    });
-
-    // Step 6: Format response data
-    const formattedData = {
-      [familyId]: {
-        members: familyMembers.map((member) => ({
-          id: member._id,
-          name: member.username,
-          avatar: member.avatar,
-        })),
-        calendar: {
-          [dateString]: {
-            emotionStats: emotionDetails, // Trả về danh sách chi tiết thay vì phần trăm
-            memberEmotions: allEmotionEntries.reduce((acc, entry) => {
-              const member = familyMembers.find(
-                (m) => m._id.toString() === entry.userId.toString()
-              );
-              if (member) {
-                acc[member.username] = {
-                  emoji: entry.emoji,
-                  note: entry.notes,
-                  username: member.username,
-                };
-              }
-              return acc;
-            }, {}),
-          },
-        },
-      },
-    };
-
-    // Step 7: Send response
     res.status(200).json({
       message: 'Emotion updated successfully',
-      data: formattedData,
-      emotionPercentages: emotionDetails, // Trả về dạng mảng như mong muốn
+      data: {
+        [familyId]: familyData,
+      },
     });
   } catch (error) {
     console.error('Error updating emotion:', error);
@@ -194,33 +247,21 @@ exports.updateYourEmotionInDay = async (req, res, next) => {
 };
 
 // Lấy danh sách các emoji (emotion entries) của các thành viên trong gia đình trong một ngày
-exports.getFamilyEmojisInDay = async (req, res, next) => {
+exports.getFamilyEmojisInDay = async (req, res) => {
   try {
     const { familyId, dateString } = req.params;
+    const familyData = await getFamilyData(familyId, dateString);
 
-    // Lấy danh sách thành viên của gia đình
-    const members = await User.find({ familyId });
-    console.log('members:', members);
-
-    // Nếu không tìm thấy thành viên nào trong gia đình
-    if (!members || members.length === 0) {
-      return res.status(404).json({
-        message: 'Không có thành viên nào trong gia đình',
-        status: 404,
-      });
-    }
-
-    const emojis = await EmotionEntry.find({
-      userId: { $in: members.map((member) => member._id) },
-      dateString, // Kiểm tra nếu dateString trong EmotionEntry có khớp
-    }).populate('userId', 'username avatar email');
-
-    return res.status(200).json(emojis);
-  } catch (err) {
+    res.status(200).json({
+      data: {
+        [familyId]: familyData,
+      },
+    });
+  } catch (error) {
+    console.error('Error getting family emojis:', error);
     res.status(500).json({
-      message: 'Lỗi khi lấy danh sách emoji của gia đình',
-      status: 500,
-      error: err.message,
+      message: 'Error getting family emojis',
+      error: error.message,
     });
   }
 };
