@@ -14,6 +14,12 @@ router.post(
   emotionEntryController.addYourEmotionInDay
 ); //ok
 
+// Route để cập nhật cảm xúc của người dùng và tính toán tỷ lệ cảm xúc tổng hợp của gia đình
+router.post(
+  '/update-emotion/family/:familyId/user/:userId',
+  emotionEntryController.updateUserEmotion
+);
+
 // Cập nhật lại cảm xúc của bạn trong ngày
 router.patch(
   '/update-your-emoji-in-day/:userId',

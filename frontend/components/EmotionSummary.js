@@ -4,19 +4,15 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { categorizeEmotion } from '../utils/emotionUtils';
 
 const EmotionSummary = ({ dayData, familyMembers }) => {
-  if (
-    !dayData ||
-    Object.keys(dayData).filter((key) => key !== 'discussion')?.length === 0
-  ) {
-    return null;
-  }
+  if (!dayData || !familyMembers) return null;
 
   const emotionCounts = { positive: 0, neutral: 0, negative: 0 };
-  const memberCount = familyMembers?.length || 0;
+  const memberCount = familyMembers.length;
   let recordedCount = 0;
 
-  familyMembers?.forEach((member) => {
-    const memberData = dayData[member.id];
+  // Process each family member's emotion
+  familyMembers.forEach((member) => {
+    const memberData = dayData[member.name]; // Use member.name instead of member.id
     if (memberData?.emoji) {
       const category = categorizeEmotion(memberData.emoji);
       emotionCounts[category]++;
@@ -37,8 +33,6 @@ const EmotionSummary = ({ dayData, familyMembers }) => {
     if (negative > neutral && negative > positive) return 'negative';
     return 'neutral';
   };
-
-  const overallMood = getOverallMood();
 
   const getMoodInfo = () => {
     if (!overallMood) return { message: 'Không có số liệu', color: '#666' };
@@ -62,7 +56,15 @@ const EmotionSummary = ({ dayData, familyMembers }) => {
     }
   };
 
+  const overallMood = getOverallMood();
   const { message, color } = getMoodInfo();
+
+  // Debug information
+  console.log('EmotionSummary Debug:');
+  console.log('Day Data:', dayData);
+  console.log('Family Members:', familyMembers);
+  console.log('Emotion Counts:', emotionCounts);
+  console.log('Recorded Count:', recordedCount);
 
   return (
     <View style={styles.container}>
@@ -157,7 +159,6 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    // alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
     borderBottomWidth: 1,
@@ -195,14 +196,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: 20,
-    // paddingHorizontal: 10s,
     borderRadius: 12,
     marginHorizontal: 5,
   },
   statValue: {
     fontSize: 20,
     fontWeight: '500',
-    // paddingHorizontal: 10,
   },
   statLabel: {
     fontSize: 12,

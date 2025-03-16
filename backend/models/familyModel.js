@@ -1,20 +1,16 @@
 const mongoose = require('mongoose');
 
-const familySchema = new mongoose.Schema({
-  familyName: {
-    type: String,
-    unique: true,
-    required: true,
+const familySchema = new mongoose.Schema(
+  {
+    familyName: {
+      type: String,
+      unique: true,
+      required: true,
+      trim: true, // Loại bỏ khoảng trắng dư thừa
+    },
   },
-  createdAt: {
-    type: Date,
-    default: Date.now(),
-  },
-  updatedAt: {
-    type: Date,
-  },
-});
+  { timestamps: true } // Tự động thêm createdAt & updatedAt
+);
 
 const Family = mongoose.model('Family', familySchema);
-
 module.exports = Family;
