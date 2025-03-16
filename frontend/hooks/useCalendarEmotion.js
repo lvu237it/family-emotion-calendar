@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { getTodayDate } from '../utils/emotionUtils.js';
 import { useCommon } from '../contexts/CommonContext.js';
 
-export function useCalendarEmotion(familyId = '67d2bed97b36eb9903fb29a8') {
+export function useCalendarEmotion(familyId = '6794f1bb4e687e91ace99e87') {
   const { emotionCalendarDataTotal, userId, setUserId } = useCommon(); // Lấy userId từ CommonContext
   const [familyData, setFamilyData] = useState(null);
   const [loading, setLoading] = useState(true);

@@ -11,6 +11,7 @@ export const Common = ({ children }) => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const exampleFamilyId = '6794f1bb4e687e91ace99e87';
   const [myFamily, setMyFamily] = useState(null);
+  const [familyId, setFamilyId] = useState(null);
   const [myFamilyMembers, setMyFamilyMembers] = useState([]);
   const [emotionCalendarDataTotal, setEmotionCalendarDataTotal] = useState({});
   const [userId, setUserId] = useState(null); // Thêm state để quản lý userId
@@ -46,6 +47,7 @@ export const Common = ({ children }) => {
       .then((data) => {
         console.log('fam', data);
         setMyFamily(data);
+        setFamilyId(data._id || exampleFamilyId);
       })
       .catch((error) => console.error('Error fetching family:', error));
 
@@ -85,6 +87,7 @@ export const Common = ({ children }) => {
       value={{
         axios,
         myip,
+        familyId,
         exampleFamilyId,
         userMenuOpen,
         setUserMenuOpen,
