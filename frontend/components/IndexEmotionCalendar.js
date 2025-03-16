@@ -7,10 +7,17 @@ import EmotionSummary from '../components/EmotionSummary';
 import { isToday } from '../utils/emotionUtils';
 
 import Entypo from '@expo/vector-icons/Entypo';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
 import { useCommon } from '../contexts/CommonContext';
 
-const Index = () => {
+const IndexEmotionCalendar = () => {
   const {
     familyData,
     loading,
@@ -27,6 +34,7 @@ const Index = () => {
   const { userMenuOpen, setUserMenuOpen } = useCommon();
 
   const [isEmotionModalOpen, setIsEmotionModalOpen] = useState(false);
+  const [calendarType, setCalendarType] = useState('emotion');
 
   if (loading) {
     return (
@@ -65,7 +73,7 @@ const Index = () => {
 
             {isTodaySelected && (
               <View style={styles.moodButtonContainer}>
-                <Pressable
+                <TouchableOpacity
                   onPress={() => setIsEmotionModalOpen(true)}
                   style={[
                     styles.moodButton,
@@ -91,7 +99,7 @@ const Index = () => {
                       </Text>
                     </>
                   )}
-                </Pressable>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -113,6 +121,7 @@ const Index = () => {
         </View>
       </View>
 
+      {/* Mở emotionModal khi click vào record hoặc update emotion */}
       <EmotionModal
         isOpen={isEmotionModalOpen}
         onClose={() => setIsEmotionModalOpen(false)}
@@ -123,7 +132,7 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default IndexEmotionCalendar;
 
 const styles = StyleSheet.create({
   container: {
@@ -152,9 +161,42 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 123, 255, 0.1)',
     borderRadius: 4,
   },
+  navigationCalendarWrapper: {
+    width: '100%',
+    flexDirection: 'row',
+    gap: 20,
+    marginBottom: 10,
+    alignSelf: 'center',
+  },
+  navigationCalendarEmotionButton: {
+    flex: 1,
+    backgroundColor: '#E9D0ED',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 15,
+  },
+  navigationCalendarSpecialDaysButton: {
+    flex: 1,
+    backgroundColor: '#9EE5EE',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 15,
+  },
+  navigationCalendarButtonText: {
+    textAlign: 'center',
+    color: 'black',
+    fontWeight: 500,
+    fontSize: 14,
+  },
+  mainContentNavigationCalendarWrapper: {
+    paddingHorizontal: 16,
+    marginTop: 16,
+    maxWidth: '100%',
+    marginHorizontal: 'auto',
+  },
   mainContent: {
     paddingHorizontal: 16,
-    paddingVertical: 32,
+    paddingVertical: 16,
     maxWidth: '100%',
     marginHorizontal: 'auto',
   },
@@ -178,7 +220,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   moodButtonUpdate: {
-    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+    backgroundColor: '#CBE5FA',
   },
   moodButtonRecord: {
     backgroundColor: '#007bff',
