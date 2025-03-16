@@ -7,8 +7,10 @@ import {
   TouchableOpacity,
   ImageBackground,
   Animated,
+  Alert,
   ActivityIndicator,
 } from 'react-native';
+
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import { useCommon } from '../contexts/CommonContext';
@@ -37,107 +39,45 @@ function RegisterPersonalAccount() {
   const slideAnim = useRef(new Animated.Value(0)).current; // Animation value
   const navigation = useNavigation(); // Lấy đối tượng navigation
 
-  // const handleCreatePersonalAccount = async () => {
-  //   // Kiểm tra thiếu thông tin
-  //   if (!username.trim() || !email.trim() || !password.trim()) {
-  //     Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ thông tin'); // Hiển thị thông báo nếu thiếu thông tin
-  //     return;
-  //   }
-
-  //   // Bắt đầu hiệu ứng loading
-  //   setIsLoading(true);
-
-  //   try {
-  //     // Gửi request tạo tài khoản
-  //     const response = await axios.post(
-  //       `http://${apiBaseUrl}/users/register-user`,
-  //       { username, email, password, familyId: myFamily._id }
-  //     );
-  //     // Cập nhật thông tin người dùng đã đăng nhập
-  //     setUserLoggedIn(response.data.data);
-
-  //     // Kết thúc hiệu ứng loading và hiển thị trạng thái thành công
-  //     setIsLoading(false);
-  //     setIsSuccessCreateAccount(true);
-
-  //     // Đợi thêm 2 giây để hiển thị thông báo thành công trước khi chuyển hướng
-  //     setTimeout(() => {
-  //       navigation.navigate('Home');
-  //     }, 2000); // Chuyển hướng sau 2 giây
-  //   } catch (error) {
-  //     // Xử lý lỗi từ server
-  //     console.error(
-  //       'Lỗi khi tạo tài khoản:',
-  //       error.response?.data || error.message
-  //     );
-
-  //     // Hiển thị thông báo lỗi từ server
-  //     const errorMessage =
-  //       error.response?.data?.message ||
-  //       'Có lỗi xảy ra khi tạo tài khoản. Vui lòng thử lại.';
-  //     Alert.alert('Lỗi', errorMessage);
-
-  //     // Kết thúc hiệu ứng loading
-  //     setIsLoading(false);
-  //   }
-  // };
-
   const handleCreatePersonalAccount = async () => {
-    // Kiểm tra thiếu thông tin
     if (!username.trim() || !email.trim() || !password.trim()) {
       Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ thông tin');
       return;
     }
 
-    // Bắt đầu hiệu ứng loading
     setIsLoading(true);
 
     try {
-      // Gửi request tạo tài khoản
-      const response = await axios.post(
-        `http://${apiBaseUrl}/users/register-user`,
-        { username, email, password, familyId: myFamily._id }
-      );
-      // Cập nhật thông tin người dùng đã đăng nhập
-      setUserLoggedIn(response.data.data);
+      await axios.post(`http://${apiBaseUrl}/users/register-user`, {
+        username,
+        email,
+        password,
+        familyId: myFamily?._id,
+      });
 
-      // Lưu thông tin người dùng vào AsyncStorage
-      await AsyncStorage.setItem(
-        'userLoggedIn',
-        JSON.stringify(response.data.data)
-      );
+      // Thêm delay để loading mượt mà hơn
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Kết thúc hiệu ứng loading và hiển thị trạng thái thành công
       setIsLoading(false);
       setIsSuccessCreateAccount(true);
 
-      // Đợi thêm 2 giây để hiển thị thông báo thành công trước khi chuyển hướng
-      setTimeout(() => {
-        navigation.navigate('Home');
-      }, 2000); // Chuyển hướng sau 2 giây
+      // Đợi hiển thị thành công
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
     } catch (error) {
-      // Xử lý lỗi từ server
-      console.error(
-        'Lỗi khi tạo tài khoản:',
-        error.response?.data || error.message
-      );
-
-      // Hiển thị thông báo lỗi từ server
-      const errorMessage =
-        error.response?.data?.message ||
-        'Có lỗi xảy ra khi tạo tài khoản. Vui lòng thử lại.';
-      Alert.alert('Lỗi', errorMessage);
-
-      // Kết thúc hiệu ứng loading
+      console.error('Error registering account:', error);
       setIsLoading(false);
+      Alert.alert(
+        'Lỗi',
+        error.response?.data?.message ||
+          'Có lỗi xảy ra khi tạo tài khoản. Vui lòng thử lại.'
+      );
     }
   };
-
-  useEffect(() => {
-    console.log('myfamily in register', myFamily);
-    console.log('myfamily in register id', myFamily._id);
-    console.log('userLoggedIn at register', userLoggedIn);
-  }, [userLoggedIn]);
 
   return (
     <ImageBackground
@@ -149,24 +89,22 @@ function RegisterPersonalAccount() {
         style={[
           styles.modalContent,
           {
-            transform: [{ translateY: slideAnim }], // Áp dụng hiệu ứng trượt
+            transform: [{ translateY: slideAnim }],
           },
         ]}
       >
         {isLoading ? (
-          // Hiển thị hiệu ứng loading
           <View style={styles.loadingContainer}>
             <ActivityIndicator size='large' color='#007bff' />
             <Text style={styles.loadingText}>Đang tạo tài khoản...</Text>
           </View>
         ) : isSuccessCreateAccount ? (
-          // Hiển thị trạng thái thành công
           <View style={styles.successContainer}>
             <Feather name='check-circle' size={60} color='#4CAF50' />
             <Text style={styles.successText}>Tạo tài khoản thành công!</Text>
+            <Text style={styles.loadingText}>Đang chuyển hướng...</Text>
           </View>
         ) : (
-          // Hiển thị form đăng ký
           <>
             <View style={styles.createAccountTitleWrapper}>
               <Text style={styles.titleCreateFamily}>
@@ -182,15 +120,15 @@ function RegisterPersonalAccount() {
               </Text>
             </View>
 
-            {/* Trường nhập tên người dùng */}
             <TextInput
               style={styles.input}
               placeholder='Nhập tên của bạn'
               placeholderTextColor='#999'
               value={username}
               onChangeText={setUsername}
+              autoCapitalize='none'
+              autoComplete='off'
             />
-            {/* Trường nhập email */}
             <TextInput
               style={styles.input}
               placeholder='Nhập email'
@@ -198,22 +136,26 @@ function RegisterPersonalAccount() {
               value={email}
               onChangeText={setEmail}
               keyboardType='email-address'
+              autoCapitalize='none'
+              autoComplete='off'
+              textContentType='emailAddress'
             />
-            {/* Trường nhập mật khẩu */}
             <TextInput
               style={styles.input}
               placeholder='Nhập mật khẩu'
               placeholderTextColor='#999'
               value={password}
               onChangeText={setPassword}
-              secureTextEntry // Ẩn mật khẩu
+              secureTextEntry
+              textContentType='none'
+              autoComplete='off'
+              autoCapitalize='none'
             />
 
-            {/* Nút "Hoàn tất" */}
             <TouchableOpacity
               style={styles.createButton}
               onPress={handleCreatePersonalAccount}
-              disabled={isLoading} // Vô hiệu hóa nút khi đang loading
+              disabled={isLoading}
             >
               <Text style={styles.createButtonText}>Hoàn tất</Text>
             </TouchableOpacity>
@@ -297,6 +239,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#4CAF50',
+  },
+  successSubText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
 });
 

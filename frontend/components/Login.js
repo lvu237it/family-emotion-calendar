@@ -61,12 +61,19 @@ function Login() {
       setUserLoggedIn(response.data.data);
       setUserId(response.data.data._id);
 
+      // Thêm delay để loading mượt mà hơn
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       setIsLoading(false);
       setIsSuccessLogin(true);
 
-      setTimeout(() => {
-        navigation.replace('Home'); // Use replace instead of navigate
-      }, 2000);
+      // Đợi hiển thị thành công
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      });
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
@@ -101,6 +108,7 @@ function Login() {
           <View style={styles.successContainer}>
             <Feather name='check-circle' size={60} color='#4CAF50' />
             <Text style={styles.successText}>Đăng nhập thành công!</Text>
+            <Text style={styles.loadingText}>Đang chuyển hướng...</Text>
           </View>
         ) : (
           // Hiển thị form đăng nhập

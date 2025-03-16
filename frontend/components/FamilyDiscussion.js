@@ -123,7 +123,7 @@ const FamilyDiscussion = ({
         <View style={styles.commentInputContainer}>
           <TextInput
             style={styles.commentInput}
-            placeholder='Add to the discussion...'
+            placeholder='Bạn nói gì đi...'
             value={comment}
             onChangeText={setComment}
           />

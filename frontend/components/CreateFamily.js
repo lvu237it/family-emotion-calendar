@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ImageBackground,
   Animated,
+  Alert,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import { useNavigation } from '@react-navigation/native';
@@ -59,24 +60,14 @@ function CreateFamily() {
       // setModalVisible(false); // Đóng modal trước
       navigation.navigate('RegisterPersonalAccount'); // Sau đó chuyển hướng
     } catch (error) {
-      console.error(
-        'Error creating family:',
-        error.response?.data || error.message
-      ); // Log lỗi chi tiết
-      alert('Có lỗi xảy ra khi tạo gia đình. Vui lòng thử lại.'); // Hiển thị thông báo lỗi
+      Alert.alert(
+        'Lỗi',
+        'Tên gia đình này đã tồn tại. Bạn hãy chọn tên khác nhé!'
+      ); // Hiển thị thông báo lỗi
     }
   };
 
-  useEffect(() => {
-    console.log('myfamilyidtoéparate', myFamilyIdToSeparate);
-  }, [myFamilyIdToSeparate]);
-
   return (
-    // <Modal
-    //   isVisible={isModalVisible}
-    //   onBackdropPress={() => setModalVisible(false)} // Đóng modal khi nhấn ra ngoài
-    //   style={styles.modal}
-    // >
     <ImageBackground
       source={require('../assets/images/wallpaper-4k-4.jpg')}
       style={styles.backgroundImage}
