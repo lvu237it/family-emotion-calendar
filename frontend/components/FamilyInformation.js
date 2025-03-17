@@ -5,6 +5,7 @@ import EmotionModal from './EmotionModal';
 import FamilyDiscussion from './FamilyDiscussion';
 import EmotionSummary from '../components/EmotionSummary';
 import { isToday } from '../utils/emotionUtils';
+import MemberDetailModal from './MemberDetailModal';
 
 import Entypo from '@expo/vector-icons/Entypo';
 import {
@@ -43,6 +44,8 @@ const FamilyInformation = () => {
   const { myFamily, myFamilyMembers, apiBaseUrl } = useCommon();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('members'); // 'members', 'events', 'tasks'
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   if (!myFamily) {
     return (
@@ -55,6 +58,11 @@ const FamilyInformation = () => {
   const filteredMembers = myFamilyMembers.filter((member) =>
     member.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleMemberPress = (member) => {
+    setSelectedMember(member);
+    setIsModalVisible(true);
+  };
 
   const renderFamilyHeader = () => (
     <View style={styles.headerContainer}>
@@ -138,11 +146,11 @@ const FamilyInformation = () => {
   const renderMembersList = () => (
     <View style={styles.membersList}>
       {filteredMembers.map((member) => (
-        <TouchableOpacity key={member.id} style={styles.memberItem}>
-          {/* <Image
-            source={require('../public/')}
-            style={styles.memberAvatar}
-          /> */}
+        <TouchableOpacity
+          key={member.id}
+          style={styles.memberItem}
+          onPress={() => handleMemberPress(member)}
+        >
           <AntDesign
             style={styles.memberAvatar}
             name='user'
@@ -199,6 +207,12 @@ const FamilyInformation = () => {
       {renderFamilyHeader()}
       {/* {renderTabBar()} */}
       {activeTab === 'members' && renderMembersList()}
+      <MemberDetailModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        member={selectedMember}
+        familyData={familyData}
+      />
       {/* {activeTab === 'events' && renderEventsList()}
       {activeTab === 'tasks' && renderTasksList()} */}
     </ScrollView>
