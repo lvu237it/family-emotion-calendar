@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useCommon } from '../contexts/CommonContext';
 
-function HomeCalendar() {
+function HomeCalendar({ setCalendarType }) {
   return (
     <View style={styles.navigationCalendarWrapper}>
       <TouchableOpacity

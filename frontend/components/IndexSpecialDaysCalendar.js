@@ -238,8 +238,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   eventContainer: {
-    marginTop: 20,
-    marginBottom: 20,
+    margin: 20,
     padding: 10,
     backgroundColor: '#e3f2fd',
     borderRadius: 10,

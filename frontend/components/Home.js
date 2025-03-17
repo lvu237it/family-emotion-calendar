@@ -28,7 +28,7 @@ function Home() {
           <FamilyInformation />
         ) : (
           <>
-            <HomeCalendar />
+            <HomeCalendar setCalendarType={setCalendarType} />
             {calendarType === 'emotion' && <IndexEmotionCalendar />}
             {calendarType === 'special days' && <IndexSpecialDaysCalendar />}
             <StatusBar style='auto' />

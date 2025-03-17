@@ -84,6 +84,7 @@ export const Common = ({ children }) => {
           id: member._id,
           name: member.username,
           avatar: member.avatar,
+          email: member.email,
         }));
         setMyFamilyMembers(formattedMembers);
 

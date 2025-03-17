@@ -264,6 +264,11 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   calendarSection: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
     gap: 16,
   },
   moodButtonContainer: {
@@ -293,6 +298,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   detailsSection: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
     gap: 24,
   },
   loadingOverlay: {
