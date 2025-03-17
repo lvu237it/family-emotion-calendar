@@ -8,6 +8,7 @@ import Introduction from './components/Introduction';
 import Login from './components/Login';
 import CreateFamily from './components/CreateFamily';
 import RegisterPersonalAccount from './components/RegisterPersonalAccount';
+import AddMembersToFamily from './components/AddMembersToFamily';
 
 const Stack = createNativeStackNavigator();
 
@@ -62,6 +63,15 @@ export default function App() {
           options={{
             headerShown: false,
             gestureEnabled: false, // Explicitly disable swipe gesture for Home screen
+          }}
+        />
+        <Stack.Screen
+          name='AddMembersToFamily'
+          component={AddMembersToFamily}
+          options={{
+            headerShown: false,
+            title: 'Đăng ký tài khoản cho thành viên',
+            gestureEnabled: false, // Enable swipe gesture only for RegisterPersonalAccount screen
           }}
         />
       </Stack.Navigator>

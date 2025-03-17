@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   StyleSheet,
   StatusBar,
@@ -11,8 +11,24 @@ import Feather from '@expo/vector-icons/Feather';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
+import { useCommon } from '../contexts/CommonContext';
 
 function BottomBar() {
+  const {
+    axios,
+    myFamily,
+    myFamilyMembers,
+    AsyncStorage,
+    apiBaseUrl,
+    myFamilyIdToSeparate,
+    setMyFamilyIdToSeparate,
+    userLoggedIn,
+    setUserLoggedIn,
+  } = useCommon();
+
+  const navigation = useNavigation(); // Lấy đối tượng navigation
+
   return (
     <>
       <View style={styles.bottomBarContainer}>
@@ -22,7 +38,9 @@ function BottomBar() {
         <TouchableOpacity>
           <MaterialIcons name='family-restroom' size={28} color='black' />
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('AddMembersToFamily')}
+        >
           <AntDesign name='pluscircleo' size={28} color='black' />
         </TouchableOpacity>
         <TouchableOpacity>
