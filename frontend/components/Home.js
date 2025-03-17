@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Header from './Header';
 import IndexEmotionCalendar from './IndexEmotionCalendar';
 import IndexSpecialDaysCalendar from './IndexSpecialDaysCalendar';
+import BottomBar from './BottomBar';
 import {
   StyleSheet,
   StatusBar,
@@ -10,7 +11,6 @@ import {
   Text,
   SafeAreaView,
 } from 'react-native';
-// import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 
 function Home() {
   const [calendarType, setCalendarType] = useState('emotion');
@@ -46,6 +46,7 @@ function Home() {
         {calendarType === 'special days' && <IndexSpecialDaysCalendar />}
         <StatusBar style='auto' />
       </View>
+      <BottomBar />
     </SafeAreaView>
   );
 }
