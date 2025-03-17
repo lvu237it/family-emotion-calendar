@@ -17,6 +17,7 @@ export const useCommon = () => useContext(CommonContext);
 export const Common = ({ children }) => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [myFamily, setMyFamily] = useState(null);
+  const [familyId, setFamilyId] = useState(null);
   const [myFamilyMembers, setMyFamilyMembers] = useState([]);
   const [emotionCalendarDataTotal, setEmotionCalendarDataTotal] = useState({});
   const [userLoggedIn, setUserLoggedIn] = useState(null);
@@ -69,6 +70,7 @@ export const Common = ({ children }) => {
 
       if (familyResponse.data) {
         setMyFamily(familyResponse.data);
+        setFamilyId(familyResponse.data._id);
 
         // Get family members
         const membersResponse = await axios.get(
@@ -82,7 +84,7 @@ export const Common = ({ children }) => {
         }));
         setMyFamilyMembers(formattedMembers);
 
-        // Get calendar data
+        // Get emotion calendar data
         const calendarResponse = await axios.get(
           `http://${apiBaseUrl}/calendars/get-calendar-of-family/${familyResponse.data._id}`
         );
@@ -128,6 +130,7 @@ export const Common = ({ children }) => {
       value={{
         axios,
         myip,
+        familyId,
         userMenuOpen,
         setUserMenuOpen,
         myFamily,
