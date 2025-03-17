@@ -14,6 +14,12 @@ const specialDaySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  familyId: {
+    // Liên kết với một gia đình cụ thể
+    type: mongoose.SchemaTypes.ObjectId,
+    ref: 'Family',
+    required: true,
+  },
   joined_users: [
     //Danh sách các thành viên tham gia ngày quan trọng
     {

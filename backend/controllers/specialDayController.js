@@ -1,221 +1,204 @@
-// const SavedRecipe = require('../models/savedRecipeModel');
-// const AppError = require('../utils/appError');
-// const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose');
+const SpecialDay = require('../models/specialDayModel');
+const User = require('../models/userModel');
 
-// exports.checkIfSavedRecipeIsExist = async (req, res, next) => {
-//   try {
-//     const { savedRecipeId } = req.params;
-//     if (!savedRecipeId) {
-//       return next(new AppError('No savedRecipeId found', 404));
-//     }
-//     const savedRecipeById = SavedRecipe.find(savedRecipeId);
-//     if (!savedRecipeById) {
-//       return next(new AppError('No saved recipes found', 404));
-//     }
-//     req.savedRecipeId = savedRecipeId;
-//     next();
-//   } catch (error) {
-//     console.error('Error finding saved recipe', error);
-//     res.status(500).json({
-//       status: 'error',
-//       message: 'Failed to get saved recipe by id.',
-//     });
-//   }
-// };
+// Lấy danh sách ngày đặc biệt theo familyId
+const getSpecialDaysByFamily = async (req, res) => {
+  try {
+    const { familyId } = req.params;
+    const specialDays = await SpecialDay.find({ familyId })
+      .populate('joined_users', 'username email')
+      .populate('createdBy', 'username email');
 
-// exports.saveRecipeToFavoriteList = async (req, res, next) => {
-//   try {
-//     const recipeId = req.recipe;
-//     if (!recipeId) {
-//       return next(new AppError('No recipeId found', 404));
-//     }
+    res.status(200).json(specialDays);
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi server', error: error.message });
+  }
+};
 
-//     // const { userId } = req.user.id;
-//     const { saverId, notes } = req.body;
-//     if (!saverId) {
-//       return next(new AppError('User not authenticated', 401));
-//     }
+// Lấy danh sách ngày đặc biệt theo ngày
+const getSpecialDaysByDate = async (req, res) => {
+  try {
+    const { date } = req.query; // Nhận ngày từ query params (format: YYYY-MM-DD)
 
-//     // Kiểm tra xem công thức đã được lưu chưa
-//     const existingSavedRecipe = await SavedRecipe.findOne({
-//       recipe: recipeId,
-//       saver: saverId,
-//     });
+    if (!date) {
+      return res
+        .status(400)
+        .json({ message: 'Vui lòng cung cấp ngày hợp lệ!' });
+    }
 
-//     if (existingSavedRecipe) {
-//       return next(new AppError('Recipe already saved by this user', 400));
-//     }
+    // Tìm kiếm sự kiện có dateString trùng với ngày được chọn
+    const specialDays = await SpecialDay.find({ dateString: date })
+      .populate('joined_users', 'username avatar') // Lấy thông tin user tham gia
+      .populate('createdBy', 'username avatar') // Lấy thông tin người tạo
+      .lean(); // Trả về Object thuần JSON
 
-//     // Tạo một SavedRecipe mới
-//     const newSavedRecipe = await SavedRecipe.create({
-//       recipe: recipeId,
-//       saver: saverId,
-//       notes: notes || null,
-//     });
+    if (specialDays.length === 0) {
+      return res
+        .status(404)
+        .json({ message: 'Không có sự kiện nào vào ngày này!' });
+    }
 
-//     // Trả về kết quả hiển thị dưới dạng json
-//     return res.status(201).json({
-//       status: 'success',
-//       data: newSavedRecipe,
-//     });
-//   } catch (error) {
-//     console.error('Error creating saved recipe', error);
-//     res.status(500).json({
-//       status: 'error',
-//       message: 'Failed to create saved recipe.',
-//     });
-//   }
-// };
+    return res.status(200).json({ specialDays });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: 'Lỗi server', error: error.message });
+  }
+};
 
-// exports.unsaveRecipeFromFavoriteList = async (req, res, next) => {
-//   try {
-//     const recipeId = req.recipe;
-//     const { saverId } = req.body; // Lấy saverId từ body
+// Thêm ngày lễ đặc biệt
+const addSpecialDay = async (req, res) => {
+  try {
+    const {
+      name,
+      notes,
+      dateString,
+      joined_users,
+      status,
+      createdBy,
+      familyId,
+    } = req.body;
 
-//     if (!recipeId || !saverId) {
-//       return next(new AppError('Missing recipeId or saverId', 400));
-//     }
+    // Kiểm tra nếu thiếu thông tin bắt buộc
+    if (!name || !dateString || !familyId) {
+      return res
+        .status(400)
+        .json({ message: 'Vui lòng nhập đầy đủ thông tin!' });
+    }
 
-//     // Xóa bản ghi đã save
-//     const deletedSavedRecipe = await SavedRecipe.findOneAndDelete({
-//       recipe: recipeId,
-//       saver: saverId,
-//     });
+    // Kiểm tra xem familyId có hợp lệ không
+    if (!mongoose.Types.ObjectId.isValid(familyId)) {
+      return res.status(400).json({ message: 'familyId không hợp lệ!' });
+    }
 
-//     if (!deletedSavedRecipe) {
-//       return next(new AppError('Recipe not found in your favorite list', 404));
-//     }
+    // Kiểm tra danh sách joined_users và chuyển đổi thành ObjectId
+    let validJoinedUsers = [];
+    if (Array.isArray(joined_users) && joined_users.length > 0) {
+      const users = await User.find({
+        _id: { $in: joined_users.map((id) => new mongoose.Types.ObjectId(id)) },
+      });
 
-//     // Trả về kết quả
-//     return res.status(200).json({
-//       status: 'success',
-//       message: 'Recipe unsaved successfully!',
-//     });
-//   } catch (error) {
-//     console.error('Error unsaving recipe:', error);
-//     res.status(500).json({
-//       status: 'error',
-//       message: 'Failed to unsave recipe.',
-//     });
-//   }
-// };
+      validJoinedUsers = users.map((user) => user._id);
+    }
 
-// exports.checkARecipeIsSaved = async (req, res, next) => {
-//   try {
-//     const { recipeId, saverId } = req.body;
+    // Tạo mới ngày lễ đặc biệt
+    const newSpecialDay = new SpecialDay({
+      name,
+      notes,
+      dateString,
+      joined_users: validJoinedUsers, //  Lưu danh sách ObjectId
+      status: status || 'Future',
+      createdBy,
+      familyId,
+    });
 
-//     // Validate input
-//     if (!recipeId || !saverId) {
-//       return res.status(400).json({
-//         status: 'fail',
-//         message: 'Thiếu tham số recipeId hoặc saverId',
-//       });
-//     }
+    await newSpecialDay.save();
 
-//     // Kiểm tra trong database
-//     const savedRecipe = await SavedRecipe.findOne({
-//       recipe: recipeId,
-//       saver: saverId,
-//     });
+    return res.status(201).json({
+      message: 'Thêm ngày lễ thành công!',
+      specialDay: newSpecialDay,
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ message: 'Lỗi server', error: error.message });
+  }
+};
 
-//     res.status(200).json({
-//       status: 'success',
-//       isSaved: !!savedRecipe,
-//       data: {
-//         exists: !!savedRecipe,
-//       },
-//     });
-//   } catch (error) {
-//     console.error('Lỗi khi kiểm tra trạng thái lưu:', error);
-//     res.status(500).json({
-//       status: 'error',
-//       message: 'Lỗi server nội bộ',
-//       error: process.env.NODE_ENV === 'development' ? error : undefined,
-//     });
-//   }
-// };
+// thêm thành viên tham gia hoặc cập nhật name, notes ngày đặc biệt
+const updateSpecialDay = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, notes, joined_users } = req.body;
+    console.log('Dữ liệu nhận từ frontend:', req.body);
 
-// exports.getAllSavedRecipes = async (req, res, next) => {
-//   try {
-//     const results = await SavedRecipe.find({
-//       isDeleted: false,
-//     });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ message: 'ID ngày đặc biệt không hợp lệ!' });
+    }
 
-//     if (results.length === 0) {
-//       return next(new AppError('No saved recipes found', 404));
-//     }
-//     res.status(200).json(results);
-//   } catch (error) {
-//     console.error('Error fetching saved recipes', error);
-//     res.status(500).json({
-//       status: 'error',
-//       message: 'Failed to get saved recipes.',
-//     });
-//   }
-// };
+    const specialDay = await SpecialDay.findById(id).populate(
+      'joined_users',
+      'familyId'
+    );
+    if (!specialDay) {
+      return res.status(404).json({ message: 'Không tìm thấy ngày đặc biệt!' });
+    }
 
-// exports.getSavedRecipesBySaverId = async (req, res, next) => {
-//   try {
-//     const { saverId } = req.params;
-//     const results = await SavedRecipe.find({ saver: saverId });
-//     if (results.length === 0) {
-//       return next(new AppError('No saved recipes by saver id found', 404));
-//     }
-//     res.status(200).json(results);
-//   } catch (error) {
-//     console.error('Error getting saved recipes by saver id', error);
-//     res.status(500).json({
-//       status: 'error',
-//       message: 'Failed to get saved recipes by saver id.',
-//     });
-//   }
-// };
+    let updateFields = {};
+    if (name) updateFields.name = name;
+    if (notes) updateFields.notes = notes;
 
-// exports.getInformationOfSavedRecipe = async (req, res, next) => {
-//   try {
-//     const savedRecipeId = req.savedRecipeId;
+    if (joined_users && Array.isArray(joined_users)) {
+      const existingUserIds = specialDay.joined_users.map((user) =>
+        user._id.toString()
+      );
+      const familyId =
+        specialDay.joined_users.length > 0
+          ? specialDay.joined_users[0].familyId?.toString()
+          : null;
 
-//     // Sử dụng populate để join dữ liệu từ Recipe và User
-//     const savedRecipe = await SavedRecipe.findById(savedRecipeId, {
-//       isDeleted: false,
-//     })
-//       .populate({
-//         path: 'recipe', // Populate trường recipe
-//         select: 'owner', // Chỉ lấy trường owner của Recipe
-//         populate: {
-//           path: 'owner', // Populate trường owner của Recipe
-//           model: 'User', // Tham chiếu đến model User
-//           select: 'username avatar', // Chỉ lấy username và avatar của User
-//         },
-//       })
-//       .populate('saver', 'username avatar'); // Populate trường saver (người lưu)
+      const validUserIds = [];
+      for (const userId of joined_users) {
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+          console.log(`User ID không hợp lệ: ${userId}, bỏ qua.`);
+          continue;
+        }
 
-//     // Kiểm tra xem savedRecipe có tồn tại không
-//     if (!savedRecipe) {
-//       return next(new AppError('No saved recipe found', 404));
-//     }
+        const user = await User.findById(userId);
+        if (!user) {
+          console.log(`Không tìm thấy user: ${userId}, bỏ qua.`);
+          continue;
+        }
 
-//     // Trả về kết quả
-//     res.status(200).json({
-//       status: 'success',
-//       data: {
-//         savedRecipe: {
-//           _id: savedRecipe._id,
-//           notes: savedRecipe.notes,
-//           createdAt: savedRecipe.createdAt,
-//           recipe: {
-//             _id: savedRecipe.recipe._id,
-//             owner: savedRecipe.recipe.owner, // Thông tin author từ Recipe
-//           },
-//           saver: savedRecipe.saver, // Thông tin người lưu
-//         },
-//       },
-//     });
-//   } catch (error) {
-//     console.error('Error getting information of saved recipe', error);
-//     res.status(500).json({
-//       status: 'error',
-//       message: 'Failed to get information of saved recipes.',
-//     });
-//   }
-// };
+        if (existingUserIds.includes(userId)) {
+          console.log(`User ${userId} đã có trong danh sách, bỏ qua.`);
+          continue;
+        }
+
+        if (familyId && user.familyId.toString() !== familyId) {
+          console.log(`User ${userId} không thuộc cùng gia đình, bỏ qua.`);
+          continue;
+        }
+
+        validUserIds.push(user._id);
+      }
+
+      updateFields.joined_users = [
+        ...new Set([...existingUserIds, ...validUserIds]),
+      ];
+    }
+
+    if (Object.keys(updateFields).length === 0) {
+      return res
+        .status(400)
+        .json({ message: 'Không có thông tin nào để cập nhật!' });
+    }
+
+    const updatedSpecialDay = await SpecialDay.findByIdAndUpdate(
+      id,
+      { $set: updateFields },
+      { new: true }
+    ).populate('joined_users', 'username avatar');
+
+    return res.status(200).json({
+      message: 'Cập nhật ngày đặc biệt thành công!',
+      specialDay: updatedSpecialDay,
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ message: 'Lỗi server', error: error.message });
+  }
+};
+
+module.exports = {
+  getSpecialDaysByFamily,
+  addSpecialDay,
+  getSpecialDaysByDate,
+  updateSpecialDay,
+};
