@@ -11,15 +11,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import { useCommon } from '../contexts/CommonContext';
 
-function RegisterPersonalAccount() {
-  const [isModalVisible, setModalVisible] = useState(true);
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+function AddMembersToFamily() {
+  const [usernameMember, setUsernameMember] = useState('');
+  const [emailMember, setEmailMember] = useState('');
+  const [passwordMember, setPasswordMember] = useState('');
   const [isLoading, setIsLoading] = useState(false); // State để quản lý trạng thái loading
   const [isSuccessCreateAccount, setIsSuccessCreateAccount] = useState(false);
 
@@ -33,13 +33,26 @@ function RegisterPersonalAccount() {
     setMyFamilyIdToSeparate,
     userLoggedIn,
     setUserLoggedIn,
+    fetchFamilyData,
   } = useCommon();
 
   const slideAnim = useRef(new Animated.Value(0)).current; // Animation value
   const navigation = useNavigation(); // Lấy đối tượng navigation
 
-  const handleCreatePersonalAccount = async () => {
-    if (!username.trim() || !email.trim() || !password.trim()) {
+  const handleBackHome = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Home');
+    }
+  };
+
+  const handleCreateMemberAccount = async () => {
+    if (
+      !usernameMember.trim() ||
+      !emailMember.trim() ||
+      !passwordMember.trim()
+    ) {
       Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ thông tin');
       return;
     }
@@ -49,9 +62,9 @@ function RegisterPersonalAccount() {
     console.log('oke', myFamily?._id);
     try {
       await axios.post(`http://${apiBaseUrl}/users/register-user`, {
-        username,
-        email,
-        password,
+        username: usernameMember,
+        email: emailMember,
+        password: passwordMember,
         familyId: myFamily?._id,
       });
 
@@ -61,12 +74,14 @@ function RegisterPersonalAccount() {
       setIsLoading(false);
       setIsSuccessCreateAccount(true);
 
+      fetchFamilyData();
+
       // Đợi hiển thị thành công
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Login' }],
+        routes: [{ name: 'Home' }],
       });
     } catch (error) {
       console.error('Error registering account:', error);
@@ -75,7 +90,7 @@ function RegisterPersonalAccount() {
       Alert.alert(
         'Lỗi',
         error.response?.data?.message ||
-          'Có lỗi xảy ra khi tạo tài khoản. Vui lòng thử lại.'
+          'Có lỗi xảy ra khi tạo tài khoản cho thành viên. Vui lòng thử lại.'
       );
     }
   };
@@ -97,7 +112,9 @@ function RegisterPersonalAccount() {
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size='large' color='#007bff' />
-            <Text style={styles.loadingText}>Đang tạo tài khoản...</Text>
+            <Text style={styles.loadingText}>
+              Đang tạo tài khoản cho thành viên mới...
+            </Text>
           </View>
         ) : isSuccessCreateAccount ? (
           <View style={styles.successContainer}>
@@ -108,25 +125,28 @@ function RegisterPersonalAccount() {
         ) : (
           <>
             <View style={styles.createAccountTitleWrapper}>
-              <Text style={styles.titleCreateFamily}>
-                Tiếp theo, hãy tạo tài khoản cá nhân của bạn{' '}
-                <Feather
-                  style={styles.iconPen}
-                  name='pen-tool'
-                  size={18}
-                  color='black'
-                />
-                . Sau đó, bạn có thể mời thêm các thành viên trong gia đình của
-                mình 😊
-              </Text>
+              <View>
+                <TouchableOpacity
+                  onPress={handleBackHome}
+                  style={styles.backWrapper}
+                >
+                  <MaterialIcons name='arrow-back' size={22} color='black' />
+                  <Text style={styles.textBackIcon}>Quay lại</Text>
+                </TouchableOpacity>
+
+                <Text style={styles.titleCreateFamily}>
+                  Hãy mời các thành viên trong gia đình cùng tham gia, bạn nhé
+                  😊
+                </Text>
+              </View>
             </View>
 
             <TextInput
               style={styles.input}
-              placeholder='Nhập tên của bạn'
+              placeholder='Nhập tên thành viên mới'
               placeholderTextColor='#999'
-              value={username}
-              onChangeText={setUsername}
+              value={usernameMember}
+              onChangeText={setUsernameMember}
               autoCapitalize='none'
               autoComplete='off'
             />
@@ -134,8 +154,8 @@ function RegisterPersonalAccount() {
               style={styles.input}
               placeholder='Nhập email'
               placeholderTextColor='#999'
-              value={email}
-              onChangeText={setEmail}
+              value={emailMember}
+              onChangeText={setEmailMember}
               keyboardType='email-address'
               autoCapitalize='none'
               autoComplete='off'
@@ -145,8 +165,8 @@ function RegisterPersonalAccount() {
               style={styles.input}
               placeholder='Nhập mật khẩu'
               placeholderTextColor='#999'
-              value={password}
-              onChangeText={setPassword}
+              value={passwordMember}
+              onChangeText={setPasswordMember}
               secureTextEntry
               textContentType='none'
               autoComplete='off'
@@ -155,7 +175,7 @@ function RegisterPersonalAccount() {
 
             <TouchableOpacity
               style={styles.createButton}
-              onPress={handleCreatePersonalAccount}
+              onPress={handleCreateMemberAccount}
               disabled={isLoading}
             >
               <Text style={styles.createButtonText}>Hoàn tất</Text>
@@ -176,6 +196,14 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'flex-end', // Đưa modal xuống dưới cùng
   },
+  backWrapper: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 20,
+  },
+  textBackIcon: {
+    fontSize: 16,
+  },
   modalContent: {
     backgroundColor: 'white',
     height: '80%', // Chiều cao 2/3 màn hình
@@ -195,9 +223,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginRight: 10,
-  },
-  iconPen: {
-    // Style cho icon pen
+    marginBottom: 15,
   },
   input: {
     height: 50,
@@ -249,4 +275,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RegisterPersonalAccount;
+export default AddMembersToFamily;
