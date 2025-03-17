@@ -114,7 +114,6 @@ const FamilyDiscussion = ({
                 </View>
               );
             })}
-            <View ref={commentsEndRef} />
           </View>
         )}
       </ScrollView>
@@ -123,7 +122,7 @@ const FamilyDiscussion = ({
         <View style={styles.commentInputContainer}>
           <TextInput
             style={styles.commentInput}
-            placeholder='Add to the discussion...'
+            placeholder='Bạn nói gì đi...'
             value={comment}
             onChangeText={setComment}
           />
@@ -149,7 +148,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignSelf: 'center',
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',

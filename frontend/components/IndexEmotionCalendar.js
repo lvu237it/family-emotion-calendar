@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { useCommon } from '../contexts/CommonContext';
 
@@ -35,6 +36,7 @@ const IndexEmotionCalendar = () => {
 
   const [isEmotionModalOpen, setIsEmotionModalOpen] = useState(false);
   const [calendarType, setCalendarType] = useState('emotion');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   if (loading) {
     return (
@@ -52,16 +54,42 @@ const IndexEmotionCalendar = () => {
   const datesWithEntries = getDatesWithEntries();
   const isTodaySelected = isToday(currentDate);
 
-  const handleEmotionUpdate = (emoji, note) => {
-    updateUserEmotion(emoji, note);
+  const handleEmotionUpdate = async (emoji) => {
+    setIsUpdating(true);
+    try {
+      await updateUserEmotion(emoji);
+      // Thêm delay nhỏ để tránh flickering
+      await new Promise((resolve) => setTimeout(resolve, 800));
+    } catch (error) {
+      console.error('Error updating emotion:', error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
-  const handleCommentAdd = (text) => {
-    addComment(text);
+  const handleCommentAdd = async (text) => {
+    if (!text.trim()) return;
+
+    setIsUpdating(true);
+    try {
+      await addComment(text);
+      await new Promise((resolve) => setTimeout(resolve, 800));
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
     <ScrollView style={styles.container}>
+      {isUpdating && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size='large' color='#007bff' />
+          <Text style={styles.loadingText}>Đang cập nhật...</Text>
+        </View>
+      )}
+
       <View style={styles.mainContent}>
         <View style={styles.gridContainer}>
           <View style={styles.calendarSection}>
@@ -105,18 +133,29 @@ const IndexEmotionCalendar = () => {
           </View>
 
           <View style={styles.detailsSection}>
-            <EmotionSummary
-              dayData={dayData}
-              familyMembers={familyData?.members}
-            />
+            {isTodaySelected ? (
+              <>
+                <EmotionSummary
+                  dayData={dayData}
+                  familyMembers={familyData?.members}
+                  isToday={isTodaySelected}
+                />
 
-            <FamilyDiscussion
-              discussion={dayData.discussion || { comments: [] }}
-              familyMembers={familyData?.members}
-              userId={userId}
-              onAddComment={handleCommentAdd}
-              isToday={isTodaySelected}
-            />
+                <FamilyDiscussion
+                  discussion={dayData.discussion || { comments: [] }}
+                  familyMembers={familyData?.members}
+                  userId={userId}
+                  onAddComment={handleCommentAdd}
+                  isToday={isTodaySelected}
+                />
+              </>
+            ) : (
+              <View style={styles.notTodayMessage}>
+                <Text style={styles.notTodayText}>
+                  Thông tin chi tiết chưa khả dụng cho ngày này
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       </View>
@@ -234,5 +273,33 @@ const styles = StyleSheet.create({
   },
   detailsSection: {
     gap: 24,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#007bff',
+  },
+  notTodayMessage: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notTodayText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 });
