@@ -17,6 +17,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useCommon } from '../contexts/CommonContext';
+import FamilyInformation from '../components/FamilyInformation';
 
 const IndexEmotionCalendar = () => {
   const {
@@ -31,6 +32,9 @@ const IndexEmotionCalendar = () => {
     addComment,
     getDatesWithEntries,
     setUserId,
+    displayFamilyInformation,
+    handleClickFamilyInformation,
+    setDisplayFamilyInformation,
   } = useCalendarEmotion();
   const { userMenuOpen, setUserMenuOpen } = useCommon();
 
@@ -83,94 +87,102 @@ const IndexEmotionCalendar = () => {
 
   return (
     <ScrollView style={styles.container}>
-      {isUpdating && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator
-            style={styles.activityIndicatorStyle}
-            size='large'
-            color='#007bff'
+      {displayFamilyInformation ? (
+        <View style={styles.familyInfoWrapper}>
+          <FamilyInformation />
+        </View>
+      ) : (
+        <>
+          {isUpdating && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator
+                style={styles.activityIndicatorStyle}
+                size='large'
+                color='#007bff'
+              />
+              <Text style={styles.loadingText}>Đang cập nhật...</Text>
+            </View>
+          )}
+
+          <View style={styles.mainContent}>
+            <View style={styles.gridContainer}>
+              <View style={styles.calendarSection}>
+                <Calendar
+                  datesWithEntries={datesWithEntries}
+                  onSelectDate={changeDate}
+                  selectedDate={currentDate}
+                />
+
+                {isTodaySelected && (
+                  <View style={styles.moodButtonContainer}>
+                    <TouchableOpacity
+                      onPress={() => setIsEmotionModalOpen(true)}
+                      style={[
+                        styles.moodButton,
+                        userEmotion.emoji
+                          ? styles.moodButtonUpdate
+                          : styles.moodButtonRecord,
+                      ]}
+                    >
+                      {userEmotion.emoji ? (
+                        <>
+                          <Text style={styles.moodButtonEmoji}>
+                            {userEmotion.emoji}
+                          </Text>
+                          <Text style={styles.moodButtonText}>
+                            Cập nhật trạng thái
+                          </Text>
+                        </>
+                      ) : (
+                        <>
+                          <Entypo name='plus' size={18} color='black' />
+                          <Text style={styles.moodButtonText}>
+                            Ghi lại cảm xúc của bạn
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.detailsSection}>
+                {isTodaySelected ? (
+                  <>
+                    <EmotionSummary
+                      dayData={dayData}
+                      familyMembers={familyData?.members}
+                      isToday={isTodaySelected}
+                    />
+
+                    <FamilyDiscussion
+                      discussion={dayData.discussion || { comments: [] }}
+                      familyMembers={familyData?.members}
+                      userId={userId}
+                      onAddComment={handleCommentAdd}
+                      isToday={isTodaySelected}
+                    />
+                  </>
+                ) : (
+                  <View style={styles.notTodayMessage}>
+                    <Text style={styles.notTodayText}>
+                      Thông tin chi tiết chưa khả dụng cho ngày này
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+
+          {/* Mở emotionModal khi click vào record hoặc update emotion */}
+          <EmotionModal
+            isOpen={isEmotionModalOpen}
+            onClose={() => setIsEmotionModalOpen(false)}
+            currentEmotion={userEmotion}
+            onSave={handleEmotionUpdate}
           />
-          <Text style={styles.loadingText}>Đang cập nhật...</Text>
-        </View>
+        </>
       )}
-
-      <View style={styles.mainContent}>
-        <View style={styles.gridContainer}>
-          <View style={styles.calendarSection}>
-            <Calendar
-              datesWithEntries={datesWithEntries}
-              onSelectDate={changeDate}
-              selectedDate={currentDate}
-            />
-
-            {isTodaySelected && (
-              <View style={styles.moodButtonContainer}>
-                <TouchableOpacity
-                  onPress={() => setIsEmotionModalOpen(true)}
-                  style={[
-                    styles.moodButton,
-                    userEmotion.emoji
-                      ? styles.moodButtonUpdate
-                      : styles.moodButtonRecord,
-                  ]}
-                >
-                  {userEmotion.emoji ? (
-                    <>
-                      <Text style={styles.moodButtonEmoji}>
-                        {userEmotion.emoji}
-                      </Text>
-                      <Text style={styles.moodButtonText}>
-                        Cập nhật trạng thái
-                      </Text>
-                    </>
-                  ) : (
-                    <>
-                      <Entypo name='plus' size={18} color='black' />
-                      <Text style={styles.moodButtonText}>
-                        Ghi lại cảm xúc của bạn
-                      </Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.detailsSection}>
-            {isTodaySelected ? (
-              <>
-                <EmotionSummary
-                  dayData={dayData}
-                  familyMembers={familyData?.members}
-                  isToday={isTodaySelected}
-                />
-
-                <FamilyDiscussion
-                  discussion={dayData.discussion || { comments: [] }}
-                  familyMembers={familyData?.members}
-                  userId={userId}
-                  onAddComment={handleCommentAdd}
-                  isToday={isTodaySelected}
-                />
-              </>
-            ) : (
-              <View style={styles.notTodayMessage}>
-                <Text style={styles.notTodayText}>
-                  Thông tin chi tiết chưa khả dụng cho ngày này
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-      </View>
-
-      {/* Mở emotionModal khi click vào record hoặc update emotion */}
-      <EmotionModal
-        isOpen={isEmotionModalOpen}
-        onClose={() => setIsEmotionModalOpen(false)}
-        currentEmotion={userEmotion}
-        onSave={handleEmotionUpdate}
-      />
     </ScrollView>
   );
 };
@@ -310,5 +322,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
+  },
+  familyInfoWrapper: {
+    flex: 1,
+    backgroundColor: '#f0f4f8',
   },
 });

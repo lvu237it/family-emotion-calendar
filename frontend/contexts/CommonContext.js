@@ -24,6 +24,9 @@ export const Common = ({ children }) => {
   const [userId, setUserId] = useState(null);
   const [familyData, setFamilyData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [displayHome, setDisplayHome] = useState(false);
+  const [displayFamilyInformation, setDisplayFamilyInformation] =
+    useState(false);
 
   const myip = process.env.EXPO_PUBLIC_IPV4_ADDRESS;
 
@@ -118,6 +121,7 @@ export const Common = ({ children }) => {
       setMyFamilyMembers([]);
       setEmotionCalendarDataTotal({});
       setFamilyData(null);
+      setDisplayHome(false);
       return true;
     } catch (error) {
       console.error('Error during logout:', error);
@@ -150,6 +154,10 @@ export const Common = ({ children }) => {
         handleLogout,
         isLoading,
         fetchFamilyData,
+        displayFamilyInformation,
+        setDisplayFamilyInformation,
+        displayHome,
+        setDisplayHome,
       }}
     >
       {children}

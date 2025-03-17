@@ -11,10 +11,12 @@ import Feather from '@expo/vector-icons/Feather';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCommon } from '../contexts/CommonContext';
 
 function BottomBar() {
+  const route = useRoute();
+
   const {
     axios,
     myFamily,
@@ -25,24 +27,41 @@ function BottomBar() {
     setMyFamilyIdToSeparate,
     userLoggedIn,
     setUserLoggedIn,
+    displayFamilyInformation,
+    setDisplayFamilyInformation,
+    handleClickFamilyInformation,
+    displayHome,
+    setDisplayHome,
   } = useCommon();
 
-  const navigation = useNavigation(); // Lấy đối tượng navigation
+  const navigation = useNavigation();
+
+  const handleFamilyPress = () => {
+    setDisplayFamilyInformation(true);
+  };
 
   return (
     <>
       <View style={styles.bottomBarContainer}>
-        <TouchableOpacity>
-          <Feather name='home' size={28} color='black' />
+        <TouchableOpacity
+          onPress={() => {
+            setDisplayFamilyInformation(false);
+            navigation.navigate('Home');
+          }}
+        >
+          <Feather name='home' size={28} />
         </TouchableOpacity>
-        <TouchableOpacity>
-          <MaterialIcons name='family-restroom' size={28} color='black' />
+
+        <TouchableOpacity onPress={handleFamilyPress}>
+          <MaterialIcons name='family-restroom' size={28} />
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={() => navigation.navigate('AddMembersToFamily')}
         >
           <AntDesign name='pluscircleo' size={28} color='black' />
         </TouchableOpacity>
+
         <TouchableOpacity>
           <MaterialCommunityIcons
             name='book-open-page-variant-outline'
@@ -50,6 +69,7 @@ function BottomBar() {
             color='black'
           />
         </TouchableOpacity>
+
         <TouchableOpacity>
           <AntDesign name='user' size={28} color='black' />
         </TouchableOpacity>
