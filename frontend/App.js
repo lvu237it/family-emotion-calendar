@@ -9,6 +9,7 @@ import Login from './components/Login';
 import CreateFamily from './components/CreateFamily';
 import RegisterPersonalAccount from './components/RegisterPersonalAccount';
 import AddMembersToFamily from './components/AddMembersToFamily';
+import FamilyInformation from './components/FamilyInformation';
 
 const Stack = createNativeStackNavigator();
 
@@ -71,6 +72,15 @@ export default function App() {
           options={{
             headerShown: false,
             title: 'Đăng ký tài khoản cho thành viên',
+            gestureEnabled: false, // Enable swipe gesture only for RegisterPersonalAccount screen
+          }}
+        />
+        <Stack.Screen
+          name='FamilyInformation'
+          component={FamilyInformation}
+          options={{
+            headerShown: false,
+            title: 'Thông tin chi tiết của gia đình',
             gestureEnabled: false, // Enable swipe gesture only for RegisterPersonalAccount screen
           }}
         />

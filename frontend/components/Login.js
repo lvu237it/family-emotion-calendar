@@ -31,6 +31,8 @@ function Login() {
     setUserLoggedIn,
     userId,
     setUserId,
+    displayHome,
+    setDisplayHome,
   } = useCommon();
 
   const handleBackIntroduction = () => {
@@ -64,9 +66,9 @@ function Login() {
       // Update context
       setUserLoggedIn(response.data.data);
       setUserId(response.data.data._id);
-
-      // Thêm delay để loading mượt mà hơn
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setDisplayHome(true),
+        // Thêm delay để loading mượt mà hơn
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setIsLoading(false);
       setIsSuccessLogin(true);

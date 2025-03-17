@@ -4,7 +4,6 @@ import IndexEmotionCalendar from './IndexEmotionCalendar';
 import IndexSpecialDaysCalendar from './IndexSpecialDaysCalendar';
 import BottomBar from './BottomBar';
 import FamilyInformation from './FamilyInformation';
-import HomeCalendar from './HomeCalendar';
 import {
   StyleSheet,
   StatusBar,
@@ -15,32 +14,30 @@ import {
 } from 'react-native';
 import { useCommon } from '../contexts/CommonContext';
 
-function Home() {
-  const [calendarType, setCalendarType] = useState('emotion');
-  const { displayFamilyInformation } = useCommon();
-
+function HomeCalendar({ setCalendarType }) {
   return (
-    <SafeAreaView style={styles.container}>
-      {/*  Đây là component bao bọc toàn bộ ứng dụng, giúp SafeAreaView hoạt động chính xác. */}
-      <Header />
-      <View style={styles.containerWrapper}>
-        {displayFamilyInformation ? (
-          <FamilyInformation />
-        ) : (
-          <>
-            <HomeCalendar setCalendarType={setCalendarType} />
-            {calendarType === 'emotion' && <IndexEmotionCalendar />}
-            {calendarType === 'special days' && <IndexSpecialDaysCalendar />}
-            <StatusBar style='auto' />
-          </>
-        )}
-      </View>
-      <BottomBar />
-    </SafeAreaView>
+    <View style={styles.navigationCalendarWrapper}>
+      <TouchableOpacity
+        style={styles.navigationCalendarEmotionButton}
+        onPress={() => {
+          setCalendarType('emotion');
+        }}
+      >
+        <Text style={styles.navigationCalendarButtonText}>Nhật ký cảm xúc</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.navigationCalendarSpecialDaysButton}
+        onPress={() => {
+          setCalendarType('special days');
+        }}
+      >
+        <Text style={styles.navigationCalendarButtonText}>Dịp quan trọng</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
-export default Home;
+export default HomeCalendar;
 
 const styles = StyleSheet.create({
   container: {
