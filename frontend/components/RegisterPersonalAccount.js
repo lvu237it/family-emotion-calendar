@@ -21,6 +21,7 @@ function RegisterPersonalAccount() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false); // State để quản lý trạng thái loading
+  const [isSuccessCreateAccount, setIsSuccessCreateAccount] = useState(false);
 
   const {
     axios,
@@ -32,8 +33,6 @@ function RegisterPersonalAccount() {
     setMyFamilyIdToSeparate,
     userLoggedIn,
     setUserLoggedIn,
-    isSuccessCreateAccount,
-    setIsSuccessCreateAccount,
   } = useCommon();
 
   const slideAnim = useRef(new Animated.Value(0)).current; // Animation value
@@ -47,6 +46,7 @@ function RegisterPersonalAccount() {
 
     setIsLoading(true);
 
+    console.log('oke', myFamily?._id);
     try {
       await axios.post(`http://${apiBaseUrl}/users/register-user`, {
         username,
@@ -70,6 +70,7 @@ function RegisterPersonalAccount() {
       });
     } catch (error) {
       console.error('Error registering account:', error);
+      console.error('Error registering account message:', error.message);
       setIsLoading(false);
       Alert.alert(
         'Lỗi',

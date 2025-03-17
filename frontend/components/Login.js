@@ -34,7 +34,11 @@ function Login() {
   } = useCommon();
 
   const handleBackIntroduction = () => {
-    navigation.goBack();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Introduction'); // Chuyển hướng về màn hình Introduction
+    }
   };
 
   const handleLogin = async () => {
