@@ -136,7 +136,13 @@ const CalendarScreen = () => {
   };
 
   if (loading) {
-    return <ActivityIndicator size='large' color='#0000ff' />;
+    return (
+      <ActivityIndicator
+        style={styles.activityIndicatorStyle}
+        size='large'
+        color='#0000ff'
+      />
+    );
   }
 
   return (
@@ -215,6 +221,11 @@ const CalendarScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 10 },
+  activityIndicatorStyle: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   calendarWrapper: {
     backgroundColor: '#fff',
     borderRadius: 15,
@@ -228,6 +239,7 @@ const styles = StyleSheet.create({
   },
   eventContainer: {
     marginTop: 20,
+    marginBottom: 20,
     padding: 10,
     backgroundColor: '#e3f2fd',
     borderRadius: 10,
@@ -246,8 +258,8 @@ const styles = StyleSheet.create({
   },
   userText: { fontSize: 14, color: '#555' },
   noEventText: {
-    marginTop: 20,
-    fontSize: 14,
+    marginVertical: 20,
+    fontSize: 16,
     color: '#888',
     textAlign: 'center',
   },

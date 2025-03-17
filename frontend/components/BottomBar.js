@@ -49,7 +49,5 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     gap: 40,
     justifyContent: 'space-between',
-    // borderWidth: 2,
-    // borderTopColor: '#E9D0ED',
   },
 });

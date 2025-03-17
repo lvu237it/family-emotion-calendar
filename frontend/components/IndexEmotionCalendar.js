@@ -85,7 +85,11 @@ const IndexEmotionCalendar = () => {
     <ScrollView style={styles.container}>
       {isUpdating && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size='large' color='#007bff' />
+          <ActivityIndicator
+            style={styles.activityIndicatorStyle}
+            size='large'
+            color='#007bff'
+          />
           <Text style={styles.loadingText}>Đang cập nhật...</Text>
         </View>
       )}
@@ -177,6 +181,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f0f4f8',
+  },
+  activityIndicatorStyle: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingContainer: {
     flex: 1,
