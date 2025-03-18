@@ -174,15 +174,15 @@ const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
     width: '100%',
-    justifyContent: 'flex-end', // Đưa modal xuống dưới cùng
+    justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: 'white',
-    height: '80%', // Chiều cao 2/3 màn hình
-    borderTopLeftRadius: 20, // Bo góc phía trên bên trái
-    borderTopRightRadius: 20, // Bo góc phía trên bên phải
+    height: '80%',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     padding: 25,
-    justifyContent: 'flex-start', // Căn nội dung từ trên xuống
+    justifyContent: 'flex-start',
   },
   createAccountTitleWrapper: {
     flexDirection: 'row',
@@ -195,9 +195,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginRight: 10,
-  },
-  iconPen: {
-    // Style cho icon pen
   },
   input: {
     height: 50,

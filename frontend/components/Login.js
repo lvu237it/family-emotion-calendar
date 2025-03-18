@@ -18,11 +18,11 @@ import Feather from '@expo/vector-icons/Feather';
 function Login() {
   const [emailLogin, setEmailLogin] = useState('');
   const [passwordLogin, setPasswordLogin] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // State để quản lý trạng thái loading
-  const [isSuccessLogin, setIsSuccessLogin] = useState(false); // State để quản lý trạng thái thành công
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccessLogin, setIsSuccessLogin] = useState(false);
 
-  const slideAnim = useRef(new Animated.Value(0)).current; // Animation value
-  const navigation = useNavigation(); // Lấy đối tượng navigation
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const navigation = useNavigation();
 
   const {
     axios,
@@ -39,7 +39,7 @@ function Login() {
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
-      navigation.navigate('Introduction'); // Chuyển hướng về màn hình Introduction
+      navigation.navigate('Introduction');
     }
   };
 
@@ -67,13 +67,11 @@ function Login() {
       setUserLoggedIn(response.data.data);
       setUserId(response.data.data._id);
       setDisplayHome(true),
-        // Thêm delay để loading mượt mà hơn
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setIsLoading(false);
       setIsSuccessLogin(true);
 
-      // Đợi hiển thị thành công
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       navigation.reset({

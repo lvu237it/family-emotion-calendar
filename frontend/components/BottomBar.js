@@ -70,7 +70,7 @@ function BottomBar() {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('UserProfile')}>
           <AntDesign name='user' size={28} color='black' />
         </TouchableOpacity>
       </View>
